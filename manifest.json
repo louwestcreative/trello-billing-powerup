@@ -1,0 +1,22 @@
+{
+  "name": "Toggl Hours Tracker",
+  "details": "Track hours, tasks, due dates, categories, and notes inside Trello cards.",
+  "icon": {
+    "url": "icon.png"
+  },
+  "author": "Lou West Creative",
+  "capabilities": [
+    "card-buttons",
+    "card-badges",
+    "card-detail-badges",
+    "card-back-section"
+  ],
+  "connectors": {},
+  "iframe": {
+    "url": "index.html",
+    "sandbox": {
+      "allow-scripts": true,
+      "allow-same-origin": true
+    }
+  }
+}

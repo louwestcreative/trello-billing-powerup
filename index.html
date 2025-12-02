@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+    <h2>Toggl Tracker</h2>
+
+    <label>Description</label>
+    <textarea id="desc"></textarea>
+
+    <label>Toggl Project</label>
+    <input id="togglProject" type="text"/>
+
+    <label>Task</label>
+    <input id="taskName" type="text"/>
+
+    <label>Hours</label>
+    <input id="hours" type="number" step="0.1"/>
+
+    <label>Date Worked</label>
+    <input id="workDate" type="date"/>
+
+    <label>Payment Due Date</label>
+    <input id="dueDate" type="date"/>
+
+    <button id="save">Save</button>
+
+    <h3>Linked Case Cards</h3>
+    <div id="linkedCards"></div>
+</div>
+
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
+<script src="client.js"></script>
+</body>
+</html>
