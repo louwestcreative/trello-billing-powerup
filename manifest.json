@@ -10,6 +10,7 @@
       "url": "https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html",
       "height": 250,
       "title": "Billing Info"
+      },
     "card-buttons": {
       "callback": "cardButtonsCallback"
     },
