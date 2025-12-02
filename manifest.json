@@ -9,16 +9,17 @@
   },
   "api_version": 1,
   "permissions": ["read", "write", "account"],
-  "card_buttons": {
-    "text": "Add Payment",
-    "callback": "addPaymentCallback"
-  },
   "capabilities": {
     "card-buttons": {
       "callback": "cardButtonsCallback"
     },
     "card-badges": {
       "callback": "cardBadgesCallback"
+    },
+    "card-back-section": {
+      "url": "https://louwestcreative.github.io/billingev/payment-entry.html",
+      "height": 250,
+      "title": "Billing Info"
     }
   }
 }
