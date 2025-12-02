@@ -6,16 +6,16 @@
   "api_version": 1,
   "permissions": ["read", "write", "account"],
   "capabilities": {
+    "card-back-section": {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html",
+      "height": 250,
+      "title": "Billing Info"
     "card-buttons": {
       "callback": "cardButtonsCallback"
     },
     "card-badges": {
       "callback": "cardBadgesCallback"
-    },
-    "card-back-section": {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html",
-      "height": 250,
-      "title": "Billing Info"
+
     }
   }
 }
