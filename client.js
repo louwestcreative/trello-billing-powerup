@@ -1,45 +1,31 @@
-var t = TrelloPowerUp.iframe();
-
-window.addEventListener('load', () => {
-  console.log('Power-Up client loaded');
-});
-
 window.TrelloPowerUp.initialize({
-  'card-buttons': function(t) {
-    return t.card('labels')
-      .then(card => {
-        return [{
-          icon: 'https://louwestcreative.github.io/billingev/icons/payment.png',
-          text: 'Add Payment',
-          callback: function(t) {
-            return t.popup({
-              title: 'Add Payment',
-              url: './payment-entry.html',
-              height: 260
-            });
-          }
-        }];
-      });
+  // Add buttons on the card
+  'card-buttons': function(t, options) {
+    return [{
+      icon: 'https://cdn-icons-png.flaticon.com/512/126/126510.png', // Example icon URL
+      text: 'Add Payment',
+      callback: function(t) {
+        return t.popup({
+          title: 'Add a Payment',
+          url: 'https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html',
+          height: 300,
+        });
+      }
+    }];
   },
 
-  'card-badges': async function(t) {
-    const card = await t.card('labels');
-    const labels = card.labels;
-    const payments = await t.get('card', 'shared', 'payments') || [];
-    const totalReceived = payments.reduce((sum, p) => sum + p.amount, 0);
-
-    const labelNames = labels.map(l => l.name.toLowerCase());
-    let retainer = 0;
-    if (labelNames.includes('kitsap gal')) retainer = 4000;
-    else if (labelNames.includes('pierce gal')) retainer = 1875;
-
-    const totalOwed = retainer;
-    const balance = totalOwed - totalReceived;
-
-    return [
-      { text: `Owed: $${totalOwed.toFixed(2)}`, color: 'red' },
-      { text: `Paid: $${totalReceived.toFixed(2)}`, color: 'green' },
-      { text: `Balance: $${balance.toFixed(2)}`, color: 'blue' }
-    ];
+  // Add badges on the card showing summary info
+  'card-badges': function(t, options) {
+    return t.get('card', 'shared', 'billingData')
+      .then(function(billingData) {
+        if (!billingData || !billingData.totalOwed) {
+          return [];
+        }
+        return [{
+          text: `Owed: $${billingData.totalOwed}`,
+          color: billingData.totalOwed > 0 ? 'red' : 'green',
+          refresh: 10, // refresh badge every 10 seconds
+        }];
+      });
   }
 });
