@@ -3,10 +3,6 @@
   "name": "Trello Billing Power-Up",
   "description": "Track payments, owed amounts, and billing info per card.",
   "author": "Lou West Creative",
-  "icon": {
-    "url": "https://louwestcreative.github.io/billingev/icons/billing-icon.png",
-    "size": 64
-  },
   "api_version": 1,
   "permissions": ["read", "write", "account"],
   "capabilities": {
@@ -17,7 +13,7 @@
       "callback": "cardBadgesCallback"
     },
     "card-back-section": {
-      "url": "https://louwestcreative.github.io/billingev/payment-entry.html",
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html",
       "height": 250,
       "title": "Billing Info"
     }
