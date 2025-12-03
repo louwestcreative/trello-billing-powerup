@@ -1,30 +1,56 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Trello Billing Power-Up</title>
-  <script src="https://p.trellocdn.com/power-up.min.js"></script>
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lou West Billing</title>
 
-<body>
-<script>
-  TrelloPowerUp.initialize({
-    'card-buttons': function(t, options) {
-      return [
-        {
-          icon: "https://louwestcreative.github.io/trello-billing-powerup/icon.png",
-          text: "Add Payment",
-          callback: function(t) {
-            return t.modal({
-              title: "Record Payment",
-              url: "https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html",
-              height: 420
-            });
-          }
-        }
-      ];
+  <!-- Trello Power-Up SDK -->
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 16px;
+      background: #f7f7f7;
     }
-  });
-</script>
+    h2 {
+      margin-top: 0;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      background: #0079bf;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0063a1;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Billing Actions</h2>
+  <p>Select an action below:</p>
+
+  <button id="openBilling">Open Billing Form</button>
+
+  <script>
+    // ALWAYS required for iframe pages in Trello
+    const t = TrelloPowerUp.iframe();
+
+    document.getElementById("openBilling").addEventListener("click", function () {
+      t.modal({
+        url: 'payment-entry.html',  // must be in same repo
+        height: 420,
+        title: 'Record Payment'
+      });
+    });
+  </script>
+
 </body>
 </html>
