@@ -1,27 +1,30 @@
 {
-  "name": "Lou West Billing",
-  "details": "Billing tools and card extensions for Trello.",
-  "icon": {
-    "url": "https://louwestcreative.github.io/trello-billing-powerup/icon.png"
-  },
+  "id": "trello-billing-powerup",
+  "name": "Billing Power-Up",
+  "description": "Add payments to your Trello cards.",
+  "author": "Lou West Creative",
+  "version": "0.0.6",
+  "apiVersion": 1,
   "capabilities": [
     "card-buttons",
-    "iframe"
+    "card-badges",
+    "card-detail-badges",
+    "card-back-section",
+    "board-buttons",
+    "show-settings",
+    "show-authorization"
   ],
-  "connectors": {
-    "iframe": {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
-    },
-    "script": {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
-    }
-  },
-  "privacyPolicyUrl": "https://louwestcreative.github.io/trello-billing-powerup/privacy.html",
-  "authors": [
+  "connectors": [
     {
-      "name": "Lou West Creative",
-      "email": "info@louwestcreative.com"
+      "type": "iframe",
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
     }
   ],
-  "version": "1.0.0"
+  "icons": {
+    "16": "images/icon-16.png",
+    "32": "images/icon-32.png",
+    "64": "images/icon-64.png",
+    "128": "images/icon-128.png"
+  },
+  "permissions": []
 }
