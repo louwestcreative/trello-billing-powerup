@@ -1,40 +1,25 @@
 {
-  "manifest_version": 1,
-  "name": "Trello Billing Power-Up",
-  "description": "Add client payments, track billing activity, and show payment badges on cards.",
-  "author": "Lou West Creative",
-  "homepage": "https://louwestcreative.github.io/trello-billing-powerup/",
+  "name": "Lou West Billing",
+  "details": "Billing tools and card extensions for Trello.",
   "icon": {
     "url": "https://louwestcreative.github.io/trello-billing-powerup/icon.png"
   },
-
   "capabilities": [
     "card-buttons",
     "card-badges",
-    "show-settings"
+    "board-buttons",
+    "iframe"
   ],
-
   "connectors": {
     "iframe": {
       "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
     }
   },
-
-  "settings": {
-    "headerColor": "blue",
-    "iframe": {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/settings.html",
-      "height": 240
+  "authors": [
+    {
+      "name": "Lou West Creative",
+      "email": "info@louwestcreative.com"
     }
-  },
-
-  "scopes": [
-    "read",
-    "write",
-    "account"
   ],
-
-  "authorization": {
-    "type": "none"
-  }
+  "version": "1.0.0"
 }
