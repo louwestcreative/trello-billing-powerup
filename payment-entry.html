@@ -33,6 +33,7 @@
       background-color: #005a8f;
     }
   </style>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 <body>
   <h3>Record Payment</h3>
@@ -52,23 +53,31 @@
   </form>
 
   <script>
-    // Simple form submit handler (for now just alerts the values)
+    var t = TrelloPowerUp.iframe();
+
     document.getElementById('paymentForm').addEventListener('submit', function(event) {
       event.preventDefault();
-      const amount = parseFloat(document.getElementById('amount').value).toFixed(2);
+
+      const amountValue = document.getElementById('amount').value;
+      const amount = parseFloat(amountValue).toFixed(2);
       const reason = document.getElementById('reason').value;
 
-      if (!amount || !reason) {
+      if (!amountValue || !reason) {
         alert('Please enter a valid amount and select a reason.');
         return;
       }
 
-      // TODO: Save payment data to Trello card custom field or storage here
-
-      alert(`Payment Added:\nAmount: $${amount}\nReason: ${reason}`);
-
-      // Clear form
-      this.reset();
+      // Save payment data to Trello card shared storage
+      t.set('card', 'shared', {
+        payment: {
+          amount: amount,
+          reason: reason,
+          date: new Date().toISOString()
+        }
+      }).then(() => {
+        alert(`Payment Added:\nAmount: $${amount}\nReason: ${reason}`);
+        t.closeModal();
+      });
     });
   </script>
 </body>
