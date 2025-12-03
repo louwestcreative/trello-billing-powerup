@@ -4,9 +4,12 @@
   "icon": {
     "url": "https://louwestcreative.github.io/trello-billing-powerup/icon.png"
   },
-  "capabilities": [
-    "card-buttons",
-    "iframe"
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "Lou West Creative",
+      "email": "info@louwestcreative.com"
+    }
   ],
   "connectors": {
     "iframe": {
@@ -16,11 +19,10 @@
       "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
     }
   },
-  "authors": [
-    {
-      "name": "Lou West Creative",
-      "email": "info@louwestcreative.com"
-    }
-  ],
-  "version": "1.0.0"
+  "capabilities": {
+    "card-buttons": {
+      "callback": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
+    },
+    "iframe": {}
+  }
 }
