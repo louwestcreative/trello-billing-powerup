@@ -1,10 +1,33 @@
 TrelloPowerUp.initialize({
-  'card-buttons': (t, opts) => [{
-    text: 'Billing',
-    callback: t => t.modal({
-      url: 'https://louwestcreative.github.io/trello-billing-powerup/client.html',
-      height: 420,
-      title: 'Billing'
-    })
-  }]
+  'card-buttons': function(t) {
+    return [{
+      icon: 'https://cdn-icons-png.flaticon.com/512/33/33622.png',
+      text: 'Add Payment',
+      callback: function(t) {
+        return t.modal({
+          url: './payment-entry.html', // Make sure this path is relative to client.html
+          title: 'Add Payment',
+          height: 300
+        });
+      }
+    }];
+  },
+
+  'card-badges': function(t) {
+    return t.get('card', 'shared', 'payments')
+      .then(function(payments) {
+        payments = payments || [];
+        let total = payments.reduce((acc, p) => acc + (p.amount || 0), 0);
+        return [{
+          text: '$' + total.toFixed(2),
+          color: total > 0 ? 'green' : 'red'
+        }];
+      })
+      .catch(function(err) {
+        console.error('Error fetching payments:', err);
+        return [];
+      });
+  },
+
+  // Add other capability handlers as needed, e.g. board-buttons, show-settings, etc.
 });
