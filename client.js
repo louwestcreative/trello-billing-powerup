@@ -5,7 +5,7 @@ TrelloPowerUp.initialize({
       text: 'Add Payment',
       callback: function(t) {
         return t.modal({
-          url: './payment-entry.html', // Make sure this path is relative to client.html
+          url: './payment-entry.html',
           title: 'Add Payment',
           height: 300
         });
@@ -29,5 +29,5 @@ TrelloPowerUp.initialize({
       });
   },
 
-  // Add other capability handlers as needed, e.g. board-buttons, show-settings, etc.
+  // Add more capabilities as needed
 });
