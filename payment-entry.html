@@ -3,43 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Billing Info</title>
+  <title>Record Payment</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 10px;
       background: #f7f7f7;
+      padding: 20px;
+      color: #333;
+    }
+    h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
     }
     label {
       display: block;
-      margin-top: 10px;
-      font-weight: bold;
+      margin-top: 12px;
+      font-weight: 600;
     }
-    input, select, button {
+    input, select {
       width: 100%;
       padding: 8px;
-      margin-top: 5px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
       box-sizing: border-box;
+      font-size: 15px;
     }
     button {
-      margin-top: 15px;
-      background-color: #0079bf;
-      color: white;
-      border: none;
-      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
       font-size: 16px;
+      font-weight: 600;
+      color: white;
+      background-color: #0079bf;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
     }
-    button:hover {
+    button:hover, button:focus {
       background-color: #005a8f;
+      outline: none;
+    }
+    .error {
+      color: red;
+      margin-top: 8px;
+      display: none;
     }
   </style>
-  <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 <body>
+
   <h3>Record Payment</h3>
-  <form id="paymentForm">
+
+  <form id="paymentForm" novalidate>
     <label for="amount">Payment Amount ($)</label>
-    <input type="number" id="amount" name="amount" min="0" step="0.01" required />
+    <input
+      type="number"
+      id="amount"
+      name="amount"
+      min="0"
+      step="0.01"
+      required
+      placeholder="Enter amount"
+    />
 
     <label for="reason">Payment Reason</label>
     <select id="reason" name="reason" required>
@@ -49,36 +78,6 @@
       <option value="testimony">Testimony</option>
     </select>
 
-    <button type="submit">Add Payment</button>
-  </form>
+    <div class="error" id="errorMsg"></div>
 
-  <script>
-    var t = TrelloPowerUp.iframe();
-
-    document.getElementById('paymentForm').addEventListener('submit', function(event) {
-      event.preventDefault();
-
-      const amountValue = document.getElementById('amount').value;
-      const amount = parseFloat(amountValue).toFixed(2);
-      const reason = document.getElementById('reason').value;
-
-      if (!amountValue || !reason) {
-        alert('Please enter a valid amount and select a reason.');
-        return;
-      }
-
-      // Save payment data to Trello card shared storage
-      t.set('card', 'shared', {
-        payment: {
-          amount: amount,
-          reason: reason,
-          date: new Date().toISOString()
-        }
-      }).then(() => {
-        alert(`Payment Added:\nAmount: $${amount}\nReason: ${reason}`);
-        t.closeModal();
-      });
-    });
-  </script>
-</body>
-</html>
+    <butt
