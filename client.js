@@ -1,18 +1,31 @@
-var t = TrelloPowerUp.iframe();
+var Promise = TrelloPowerUp.Promise;
 
 TrelloPowerUp.initialize({
   'card-buttons': function(t, options) {
-    return cardButtonsCallback(t, options);
-  },
-  'card-badges': function(t, options) {
-    return cardBadgesCallback(t, options);
-  },
-  'card-back-section': function(t, options) {
-    return {
-      title: 'Billing Info',
-      url: 'payment-entry.html',
-      height: 250,
-    };
-  },
-});
+    return [
+      {
+        icon: "https://louwestcreative.github.io/trello-billing-powerup/icon.png",
+        text: "Add Payment",
 
+        callback: function(t) {
+          return t.modal({
+            title: "Record Payment",
+            url: "https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html",
+            height: 420
+          });
+        }
+      }
+    ];
+  },
+
+  'card-badges': function(t, options) {
+    return t.get('card', 'shared', 'payment')
+      .then(function(payment) {
+        if (!payment) return [];
+        return [{
+          text: `$${payment.amount}`,
+          color: "blue"
+        }];
+      });
+  }
+});
