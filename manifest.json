@@ -6,13 +6,14 @@
   },
   "capabilities": [
     "card-buttons",
-    "card-badges",
-    "board-buttons",
     "iframe"
   ],
   "connectors": {
     "iframe": {
       "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
+    },
+    "script": {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
     }
   },
   "authors": [
