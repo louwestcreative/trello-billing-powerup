@@ -1,22 +1,40 @@
 {
   "manifest_version": 1,
   "name": "Trello Billing Power-Up",
-  "description": "Track payments, owed amounts, and billing info per card.",
+  "description": "Add client payments, track billing activity, and show payment badges on cards.",
   "author": "Lou West Creative",
-  "api_version": 1,
-  "permissions": ["read", "write", "account"],
-  "capabilities": {
-    "card-back-section": {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html",
-      "height": 250,
-      "title": "Billing Info"
-      },
-    "card-buttons": {
-      "callback": "cardButtonsCallback"
-    },
-    "card-badges": {
-      "callback": "cardBadgesCallback"
+  "homepage": "https://louwestcreative.github.io/trello-billing-powerup/",
+  "icon": {
+    "url": "https://louwestcreative.github.io/trello-billing-powerup/icon.png"
+  },
 
+  "capabilities": [
+    "card-buttons",
+    "card-badges",
+    "show-settings"
+  ],
+
+  "connectors": {
+    "iframe": {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
     }
+  },
+
+  "settings": {
+    "headerColor": "blue",
+    "iframe": {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/settings.html",
+      "height": 240
+    }
+  },
+
+  "scopes": [
+    "read",
+    "write",
+    "account"
+  ],
+
+  "authorization": {
+    "type": "none"
   }
 }
