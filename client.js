@@ -1,33 +1,38 @@
-TrelloPowerUp.initialize({
-  'card-buttons': function(t) {
-    return [{
-      icon: 'https://cdn-icons-png.flaticon.com/512/33/33622.png',
-      text: 'Add Payment',
-      callback: function(t) {
-        return t.modal({
-          url: './payment-entry.html',
-          title: 'Add Payment',
-          height: 300
-        });
-      }
-    }];
-  },
+/* client.js */
 
-  'card-badges': function(t) {
-    return t.get('card', 'shared', 'payments')
-      .then(function(payments) {
-        payments = payments || [];
-        let total = payments.reduce((acc, p) => acc + (p.amount || 0), 0);
-        return [{
-          text: '$' + total.toFixed(2),
-          color: total > 0 ? 'green' : 'red'
-        }];
+var t = TrelloPowerUp.iframe();
+
+document.addEventListener('DOMContentLoaded', async function () {
+  // Load and display payment history when modal loads
+  const payments = await t.get('card', 'shared', 'payments') || [];
+  const paymentList = document.getElementById('payment-list');
+
+  if (payments.length === 0) {
+    paymentList.innerHTML = '<p>No payments recorded yet.</p>';
+  } else {
+    paymentList.innerHTML = payments
+      .map(p => {
+        const payDate = new Date(p.date).toLocaleDateString();
+        const loggedDate = new Date(p.loggedAt).toLocaleString();
+        return `
+          <div style="border-bottom:1px solid #ccc; padding:5px 0;">
+            <strong>Type:</strong> ${p.type} <br/>
+            <strong>Amount:</strong> $${p.amount.toFixed(2)} <br/>
+            <strong>Payment Date:</strong> ${payDate} <br/>
+            <small><em>Logged: ${loggedDate}</em></small>
+          </div>
+        `;
       })
-      .catch(function(err) {
-        console.error('Error fetching payments:', err);
-        return [];
-      });
-  },
+      .join('');
+  }
+});
 
-  // Add more capabilities as needed
+// Listen for form submission from payment-entry modal
+window.addEventListener('message', async (event) => {
+  if (event.data && event.data.type === 'new-payment') {
+    let payments = await t.get('card', 'shared', 'payments') || [];
+    payments.push(event.data.payment);
+    await t.set('card', 'shared', 'payments', payments);
+    t.closeModal();
+  }
 });
