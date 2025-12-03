@@ -3,21 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <title>Trello Billing Power-Up</title>
-
-  <!-- Trello Power-Up Client Library -->
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 
 <body>
 <script>
-  // ---- POWER-UP INITIALIZATION ----
   TrelloPowerUp.initialize({
     'card-buttons': function(t, options) {
       return [
         {
           icon: "https://louwestcreative.github.io/trello-billing-powerup/icon.png",
           text: "Add Payment",
-
           callback: function(t) {
             return t.modal({
               title: "Record Payment",
@@ -27,18 +23,6 @@
           }
         }
       ];
-    },
-
-    'card-badges': function(t, options) {
-      return t.get('card', 'shared', 'payment')
-        .then(function(payment) {
-          if (!payment) return [];
-
-          return [{
-            text: `$${payment.amount}`,
-            color: "blue"
-          }];
-        });
     }
   });
 </script>
