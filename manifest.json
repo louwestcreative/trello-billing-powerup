@@ -16,12 +16,12 @@
       "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
     }
   },
+  "privacyPolicyUrl": "https://louwestcreative.github.io/trello-billing-powerup/privacy.html",
   "authors": [
     {
       "name": "Lou West Creative",
       "email": "info@louwestcreative.com"
     }
   ],
-  "version": "1.0.0",
-  "privacyPolicyUrl": "https://louwestcreative.com/privacy"
+  "version": "1.0.0"
 }
