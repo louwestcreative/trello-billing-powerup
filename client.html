@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Trello Billing Power-Up Connector</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+</head>
+<body>
+<script>
+  TrelloPowerUp.initialize({
+    'card-buttons': function(t, options) {
+      return [{
+        icon: 'https://louwestcreative.github.io/trello-billing-powerup/icon.png', // Use your icon URL
+        text: 'Add Payment',
+        callback: function(t) {
+          return t.modal({
+            title: 'Add Payment',
+            url: 'https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html',
+            height: 400
+          });
+        }
+      }];
+    }
+  });
+</script>
+</body>
+</html>
