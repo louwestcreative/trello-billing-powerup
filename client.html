@@ -2,59 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lou West Billing</title>
+  <title>Billing Power-Up Client</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f7f7f7;
-      color: #333;
-    }
-    h2 {
-      margin-top: 0;
-      margin-bottom: 15px;
-      font-weight: 600;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      color: white;
-      background-color: #0079bf;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover, button:focus {
-      background-color: #005a8f;
-      outline: none;
-    }
-    p {
-      margin-bottom: 10px;
-    }
-  </style>
+  <script src="./client.js"></script>
 </head>
 <body>
-
-  <h2>Billing Actions</h2>
-  <p>Click below to add a payment for this card:</p>
-
-  <button id="openBillingForm" type="button">Open Billing Form</button>
-
-  <script>
-    const t = TrelloPowerUp.iframe();
-
-    document.getElementById('openBillingForm').addEventListener('click', () => {
-      t.modal({
-        url: 'payment-entry.html',
-        height: 480,
-        title: 'Record Payment'
-      });
-    });
-  </script>
-
+  <h1>Billing Power-Up Running</h1>
 </body>
 </html>
