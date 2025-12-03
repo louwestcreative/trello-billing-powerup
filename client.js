@@ -1,38 +1,57 @@
 /* client.js */
 
-var t = TrelloPowerUp.iframe();
+TrelloPowerUp.initialize({
 
-document.addEventListener('DOMContentLoaded', async function () {
-  // Load and display payment history when modal loads
-  const payments = await t.get('card', 'shared', 'payments') || [];
-  const paymentList = document.getElementById('payment-list');
+  // Card Buttons - includes the "Add Payment" button to open modal
+  'card-buttons': function (t, opts) {
+    return [{
+      icon: 'https://cdn-icons-png.flaticon.com/512/1828/1828817.png', // payment icon or your custom icon URL
+      text: 'Add Payment',
+      callback: function (t) {
+        return t.modal({
+          url: t.signUrl('./payment-entry.html'),
+          title: 'Add Payment',
+          height: 370,
+        });
+      }
+    }];
+  },
 
-  if (payments.length === 0) {
-    paymentList.innerHTML = '<p>No payments recorded yet.</p>';
-  } else {
-    paymentList.innerHTML = payments
-      .map(p => {
-        const payDate = new Date(p.date).toLocaleDateString();
-        const loggedDate = new Date(p.loggedAt).toLocaleString();
-        return `
-          <div style="border-bottom:1px solid #ccc; padding:5px 0;">
-            <strong>Type:</strong> ${p.type} <br/>
-            <strong>Amount:</strong> $${p.amount.toFixed(2)} <br/>
-            <strong>Payment Date:</strong> ${payDate} <br/>
-            <small><em>Logged: ${loggedDate}</em></small>
-          </div>
-        `;
-      })
-      .join('');
-  }
+  // Card Badges (optional - show count of payments)
+  'card-badges': async function (t, opts) {
+    const payments = await t.get('card', 'shared', 'payments') || [];
+    return payments.length > 0 ? [{
+      text: `Payments: ${payments.length}`,
+      color: 'green',
+      refresh: 10 // refresh badge every 10 seconds
+    }] : [];
+  },
+
+  // Card Back Section to show payment log
+  'card-back-section': async function (t, opts) {
+    return {
+      title: 'Payment Log',
+      icon: 'https://cdn-icons-png.flaticon.com/512/1828/1828817.png',
+      content: {
+        type: 'iframe',
+        url: t.signUrl('./payment-log.html'), // We'll create this below
+        height: 300
+      }
+    };
+  },
+
 });
 
-// Listen for form submission from payment-entry modal
-window.addEventListener('message', async (event) => {
+// Listen for messages from modal to receive new payment data
+window.addEventListener('message', async function (event) {
   if (event.data && event.data.type === 'new-payment') {
+    const t = TrelloPowerUp.iframe();
+
     let payments = await t.get('card', 'shared', 'payments') || [];
     payments.push(event.data.payment);
     await t.set('card', 'shared', 'payments', payments);
+
+    // Close modal after saving
     t.closeModal();
   }
 });
