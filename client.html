@@ -2,31 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Trello Billing Power-Up</title>
+  <title>Billing & Payments</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <script src="./client.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 12px;
-      max-width: 400px;
-      background-color: #f0f4f8;
-      color: #333;
-    }
-    h1 {
-      font-size: 1.5rem;
-      margin-bottom: 16px;
-      color: #0079bf;
-    }
-    p {
-      font-size: 1rem;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Trello Billing Power-Up</h1>
-  <p>This Power-Up adds billing and payment tracking directly inside your Trello cards.</p>
-  <p>Open any card labeled <strong>Pierce GAL</strong> or <strong>Kitsap GAL</strong> and check the card back to add/view charges and payments.</p>
-  <p>The card front badge shows your current balance automatically.</p>
+  <h2>Billing & Payment Log</h2>
+
+  <form id="charge-form" autocomplete="off">
+    <label for="charge-type">Charge Type (GAL only)</label>
+    <select id="charge-type" required>
+      <option value="" disabled selected>Select type</option>
+      <option value="retainer">Retainer</option>
+      <option value="added fees">Added Fees</option>
+      <option value="testimony">Testimony</option>
+    </select>
+
+    <label for="charge-date">Charge Date</label>
+    <input type="date" id="charge-date" required />
+
+    <label for="charge-amount">Charge Amount ($)</label>
+    <input type="number" id="charge-amount" step="0.01" min="0" required />
+
+    <button type="submit">Add Charge</button>
+  </form>
+
+  <form id="payment-form" autocomplete="off" style="margin-top: 20px;">
+    <label for="payment-date">Payment Date</label>
+    <input type="date" id="payment-date" required />
+
+    <label for="payment-amount">Payment Amount ($)</label>
+    <input type="number" id="payment-amount" step="0.01" min="0" required />
+
+    <button type="submit">Add Payment</button>
+  </form>
+
+  <div id="log">
+    <div class="log-header">Charge Log</div>
+    <div id="charges-log"><em>No charges recorded</em></div>
+
+    <div class="log-header">Payment Log</div>
+    <div id="payments-log"><em>No payments recorded</em></div>
+  </div>
+
+  <script src="client.js"></script>
 </body>
 </html>
