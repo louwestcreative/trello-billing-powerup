@@ -4,207 +4,80 @@
   <meta charset="UTF-8" />
   <title>Billing & Payments</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <link rel="stylesheet" href="./style.css" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 12px;
-      max-width: 420px;
-      background: #f9f9f9;
-    }
-    label {
-      display: block;
-      margin: 8px 0 4px;
-      font-weight: bold;
-    }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 12px;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      background-color: #0079bf;
-      border: none;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #026aa7;
-    }
-    #log {
-      margin-top: 24px;
-      background: white;
-      padding: 12px;
-      border-radius: 6px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-    .log-entry {
-      border-bottom: 1px solid #ddd;
-      padding: 6px 0;
-      font-size: 14px;
-    }
-    .log-header {
-      font-weight: bold;
-      margin-top: 16px;
-      font-size: 16px;
-      border-bottom: 2px solid #0079bf;
-      padding-bottom: 4px;
-    }
+    /* Inline fallback styles */
+    body { font-family: Arial, sans-serif; padding: 12px; max-width: 560px; background: #f9f9f9; }
+    .section { background: white; padding: 12px; border-radius: 6px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    label { display:block; margin-top:8px; font-weight:600; }
+    input, select { width:100%; padding:8px; margin-top:6px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; }
+    button { margin-top:10px; padding:10px; background:#0079bf; color:white; border:none; border-radius:4px; cursor:pointer; }
+    table { width:100%; border-collapse:collapse; margin-top:8px; }
+    th, td { border:1px solid #e6e6e6; padding:6px; text-align:left; }
+    .muted { color:#666; font-size:0.95em; }
+    .delete-btn { background:#d9534f; padding:6px 8px; border-radius:4px; color:white; border:none; cursor:pointer; }
+    .small { font-size:0.9em; color:#444; }
   </style>
 </head>
 <body>
-  <h2>Billing & Payment Log</h2>
+  <h2>Billing & Payments</h2>
+  <div id="info" class="muted">Loading card billing info…</div>
 
-  <form id="charge-form" autocomplete="off">
-    <label for="charge-type">Charge Type</label>
-    <select id="charge-type" required>
-      <option value="" disabled selected>Select type</option>
-      <option value="retainer">Retainer</option>
-      <option value="added fees">Added Fees</option>
-      <option value="testimony">Testimony</option>
-    </select>
+  <div class="section" id="charge-section">
+    <h3 id="charge-title">Add Charge</h3>
 
-    <label for="charge-date">Charge Date</label>
-    <input type="date" id="charge-date" required />
+    <div id="gal-fields">
+      <label for="charge-type">Charge Type</label>
+      <select id="charge-type">
+        <option value="" disabled selected>Select type</option>
+        <option value="Retainer">Retainer</option>
+        <option value="Added Fees">Added Fees</option>
+        <option value="Testimony">Testimony</option>
+      </select>
 
-    <label for="charge-amount">Charge Amount ($)</label>
-    <input type="number" id="charge-amount" step="0.01" min="0" required />
+      <label for="charge-amount">Amount ($)</label>
+      <input id="charge-amount" type="number" step="0.01" min="0" placeholder="Enter amount" />
+    </div>
 
-    <button type="submit">Add Charge</button>
-  </form>
+    <div id="cv-fields" style="display:none">
+      <label for="hours">Hours</label>
+      <input id="hours" type="number" step="0.25" min="0" placeholder="Enter hours" />
+      <div class="muted" id="rate-note">Rate: $0/hr — Amount will auto-calc</div>
+    </div>
 
-  <form id="payment-form" autocomplete="off" style="margin-top: 20px;">
-    <label for="payment-type">Payment Type</label>
-    <select id="payment-type" required>
-      <option value="" disabled selected>Select type</option>
-      <option value="retainer">Retainer</option>
-      <option value="added fees">Added Fees</option>
-      <option value="testimony">Testimony</option>
-    </select>
+    <label for="charge-date">Date</label>
+    <input id="charge-date" type="date" />
 
-    <label for="payment-date">Payment Date</label>
-    <input type="date" id="payment-date" required />
-
-    <label for="payment-amount">Payment Amount ($)</label>
-    <input type="number" id="payment-amount" step="0.01" min="0" required />
-
-    <button type="submit">Add Payment</button>
-  </form>
-
-  <div id="log">
-    <div class="log-header">Charge Log</div>
-    <div id="charges-log"><em>No charges recorded</em></div>
-
-    <div class="log-header">Payment Log</div>
-    <div id="payments-log"><em>No payments recorded</em></div>
+    <button id="add-charge-btn">Add Charge</button>
   </div>
 
-  <script>
-    const t = TrelloPowerUp.iframe();
+  <div class="section" id="payment-section">
+    <h3>Record Payment</h3>
 
-    // Load billing data or default empty arrays
-    function loadBillingData() {
-      return t.get('card', 'shared', 'billingData')
-        .then(data => data || { charges: [], payments: [] });
-    }
+    <label for="payment-date">Date</label>
+    <input id="payment-date" type="date" />
 
-    // Save billing data to Trello card shared storage
-    function saveBillingData(data) {
-      return t.set('card', 'shared', 'billingData', data);
-    }
+    <label for="payment-amount">Amount ($)</label>
+    <input id="payment-amount" type="number" step="0.01" min="0" />
 
-    // Render logs to the UI
-    function renderLogs(data) {
-      const chargesDiv = document.getElementById('charges-log');
-      const paymentsDiv = document.getElementById('payments-log');
+    <button id="add-payment-btn">Add Payment</button>
+  </div>
 
-      if (data.charges.length === 0) {
-        chargesDiv.innerHTML = '<em>No charges recorded</em>';
-      } else {
-        chargesDiv.innerHTML = data.charges.map(c =>
-          `<div class="log-entry">${escapeHTML(c.date)} — <strong>${escapeHTML(c.type)}</strong> — $${parseFloat(c.amount).toFixed(2)}</div>`
-        ).join('');
-      }
+  <div class="section">
+    <h3>Summary</h3>
+    <div id="summary">Loading…</div>
+  </div>
 
-      if (data.payments.length === 0) {
-        paymentsDiv.innerHTML = '<em>No payments recorded</em>';
-      } else {
-        paymentsDiv.innerHTML = data.payments.map(p =>
-          `<div class="log-entry">${escapeHTML(p.date)} — <strong>${escapeHTML(p.type)}</strong> — $${parseFloat(p.amount).toFixed(2)}</div>`
-        ).join('');
-      }
-    }
+  <div class="section">
+    <h3>Charges Log</h3>
+    <table id="charges-table"><thead><tr><th>Type/Hours</th><th>Date</th><th>Amount</th><th></th></tr></thead><tbody></tbody></table>
+  </div>
 
-    // Simple escape HTML to prevent injection
-    function escapeHTML(str) {
-      return str.replace(/[&<>"']/g, function(m) {
-        return ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;'
-        })[m];
-      });
-    }
+  <div class="section">
+    <h3>Payments Log</h3>
+    <table id="payments-table"><thead><tr><th>Date</th><th>Amount</th><th></th></tr></thead><tbody></tbody></table>
+  </div>
 
-    // Handle add charge form submit
-    document.getElementById('charge-form').addEventListener('submit', e => {
-      e.preventDefault();
-      const type = document.getElementById('charge-type').value;
-      const date = document.getElementById('charge-date').value;
-      const amount = parseFloat(document.getElementById('charge-amount').value);
-
-      if (!type || !date || isNaN(amount) || amount <= 0) {
-        alert('Please complete all charge fields correctly.');
-        return;
-      }
-
-      loadBillingData().then(data => {
-        data.charges.push({ type, date, amount });
-        return saveBillingData(data);
-      }).then(() => loadBillingData())
-        .then(updatedData => {
-          renderLogs(updatedData);
-          alert('Charge added successfully!');
-          e.target.reset();
-          // Notify Trello to refresh badge (if you have it wired)
-          t.notifyParent('billingDataChanged');
-        });
-    });
-
-    // Handle add payment form submit
-    document.getElementById('payment-form').addEventListener('submit', e => {
-      e.preventDefault();
-      const type = document.getElementById('payment-type').value;
-      const date = document.getElementById('payment-date').value;
-      const amount = parseFloat(document.getElementById('payment-amount').value);
-
-      if (!type || !date || isNaN(amount) || amount <= 0) {
-        alert('Please complete all payment fields correctly.');
-        return;
-      }
-
-      loadBillingData().then(data => {
-        data.payments.push({ type, date, amount });
-        return saveBillingData(data);
-      }).then(() => loadBillingData())
-        .then(updatedData => {
-          renderLogs(updatedData);
-          alert('Payment recorded successfully!');
-          e.target.reset();
-          // Notify Trello to refresh badge (if you have it wired)
-          t.notifyParent('billingDataChanged');
-        });
-    });
-
-    // Initial load of data
-    loadBillingData().then(renderLogs);
-  </script>
+  <script src="./billing.js"></script>
 </body>
 </html>
