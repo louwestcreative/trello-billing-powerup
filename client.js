@@ -1,149 +1,144 @@
 const t = TrelloPowerUp.iframe();
 
-function loadBillingData() {
-  return t.get('card', 'shared', 'billingData').then(data => data || { charges: [], payments: [], autoChargesDone: false });
+// Define your GAL label groups and automatic charges
+const LABEL_CHARGES = {
+  "Pierce GAL": 2000,
+  "Pierce MG GAL": 2000,
+  "Kitsap GAL": 4000,
+  "Kitsap MG GAL": 4000,
+};
+
+// Hourly rates for CV (used in charges only, no badges)
+const HOURLY_RATES = {
+  "Pierce CV": 125,
+  "Kitsap CV": 75,
+};
+
+// Utility: get all labels on card as array of label names
+async function getCardLabels() {
+  const labels = await t.card('labels');
+  return labels.labels.map(label => label.name);
 }
 
-function saveBillingData(data) {
-  return t.set('card', 'shared', 'billingData', data);
+// Load billing data or return default structure
+async function loadBillingData() {
+  const data = await t.get('card', 'shared', 'billingData');
+  return data || { charges: [], payments: [] };
 }
 
-function notifyParent() {
-  t.notifyParent('billingDataChanged');
+// Save billing data
+async function saveBillingData(data) {
+  await t.set('card', 'shared', 'billingData', data);
+  t.notifyParent('billingDataChanged'); // notify for badge refresh
 }
 
-// Get card labels
-function getCardLabelNames() {
-  return t.card('labels').then(card => card.labels.map(label => label.name));
+// Calculate total amount from entries array
+function sumAmounts(entries) {
+  return entries.reduce((sum, e) => sum + Number(e.amount || 0), 0);
 }
 
-// Automatically add GAL charges if relevant labels present and not already added
-async function applyAutoCharges(data) {
-  if (data.autoChargesDone) return data;
+// Calculate balance = total charges - total payments
+function calculateBalance(data) {
+  const chargesTotal = sumAmounts(data.charges);
+  const paymentsTotal = sumAmounts(data.payments);
+  return chargesTotal - paymentsTotal;
+}
 
-  const labels = await getCardLabelNames();
-  const pierceGALLabels = ['Pierce GAL', 'Pierce MG GAL'];
-  const kitsapGALLabels = ['Kitsap GAL', 'Kitsap MG GAL'];
+// Check if any of the card labels match the GAL label groups (for automatic charge)
+function findApplicableLabel(labels) {
+  for (const label of labels) {
+    if (LABEL_CHARGES[label]) return label;
+  }
+  return null;
+}
 
-  const newCharges = [];
+// Add automatic charge if not already present for a label
+async function addAutomaticChargeIfNeeded(labelName, data) {
+  const chargeAmount = LABEL_CHARGES[labelName];
+  if (!chargeAmount) return data; // no charge for this label
 
-  if (labels.some(l => pierceGALLabels.includes(l))) {
-    newCharges.push({
-      type: 'retainer (auto)',
-      date: new Date().toISOString().slice(0, 10),
-      amount: 2000,
+  // Check if charge already recorded for this label
+  const exists = data.charges.some(
+    c => c.type === labelName && c.auto === true
+  );
+  if (!exists) {
+    // Add automatic charge entry for today
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    data.charges.push({
+      type: labelName,
+      date: today,
+      amount: chargeAmount,
+      auto: true, // mark as auto-generated
     });
   }
-
-  if (labels.some(l => kitsapGALLabels.includes(l))) {
-    newCharges.push({
-      type: 'retainer (auto)',
-      date: new Date().toISOString().slice(0, 10),
-      amount: 4000,
-    });
-  }
-
-  data.charges = data.charges.concat(newCharges);
-  data.autoChargesDone = true;
-
-  await saveBillingData(data);
   return data;
 }
 
-function clearForm(form) {
-  form.reset();
-}
-
-function validateChargeForm(type, date, amount) {
-  if (!type || !date || isNaN(amount) || amount <= 0) {
-    alert('Please complete all charge fields correctly.');
-    return false;
-  }
-  return true;
-}
-
-function validatePaymentForm(date, amount) {
-  if (!date || isNaN(amount) || amount <= 0) {
-    alert('Please complete all payment fields correctly.');
-    return false;
-  }
-  return true;
-}
-
-function init() {
-  // Disable charge type select if card is not GAL (based on labels)
-  getCardLabelNames().then(labels => {
-    const galLabels = ['Pierce GAL', 'Pierce MG GAL', 'Kitsap GAL', 'Kitsap MG GAL'];
-    const isGAL = labels.some(l => galLabels.includes(l));
-    const chargeTypeSelect = document.getElementById('charge-type');
-    if (!isGAL) {
-      chargeTypeSelect.disabled = true;
-      chargeTypeSelect.value = '';
-      chargeTypeSelect.innerHTML = '<option>No GAL labels on card</option>';
-    }
-  });
-
-  // Apply auto charges on load
-  loadBillingData()
-    .then(applyAutoCharges)
-    .then(() => {
-      // Nothing else needed on load here
-    });
-
-  // Charge form submit handler
-  document.getElementById('charge-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const type = document.getElementById('charge-type').value;
-    const date = document.getElementById('charge-date').value;
-    const amount = parseFloat(document.getElementById('charge-amount').value);
-
-    if (!validateChargeForm(type, date, amount)) return;
-
-    loadBillingData().then(data => {
-      data.charges.push({ type, date, amount });
-      return saveBillingData(data);
-    }).then(() => {
-      alert('Charge added successfully!');
-      clearForm(e.target);
-      notifyParent();
-    });
-  });
-
-  // Payment form submit handler
-  document.getElementById('payment-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const date = document.getElementById('payment-date').value;
-    const amount = parseFloat(document.getElementById('payment-amount').value);
-
-    if (!validatePaymentForm(date, amount)) return;
-
-    loadBillingData().then(data => {
-      data.payments.push({ type: 'GAL Payment', date, amount });
-      return saveBillingData(data);
-    }).then(() => {
-      alert('Payment recorded successfully!');
-      clearForm(e.target);
-      notifyParent();
-    });
-  });
-}
-
-// Card Badge callback to show current balance
-async function cardBadgeCallback(t, options) {
+// Badge callback to show balance on card front
+async function badgeCallback(t, opts) {
   const data = await loadBillingData();
-  // Calculate balance: sum charges - sum payments
-  const sumCharges = data.charges.reduce((acc, c) => acc + parseFloat(c.amount || 0), 0);
-  const sumPayments = data.payments.reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
-  const balance = sumCharges - sumPayments;
+
+  // Get card labels to determine automatic charges
+  const labels = await getCardLabels();
+
+  // Ensure automatic charges are present if labels require
+  const dataWithAuto = await addAutomaticChargeIfNeeded(findApplicableLabel(labels), data);
+  if (dataWithAuto !== data) {
+    await saveBillingData(dataWithAuto);
+  }
+
+  const balance = calculateBalance(dataWithAuto);
+
+  if (balance <= 0) {
+    // No badge if no balance owed
+    return null;
+  }
 
   return {
-    text: `$${balance.toFixed(2)} owed`,
+    text: `$${balance.toFixed(2)}`,
     color: balance > 0 ? 'red' : 'green',
-    refresh: 10
+    // Optional icon: https://developer.atlassian.com/cloud/trello/images/power-up-icons/
+    // icon: 'https://example.com/your-icon.png',
+    refresh: 10 // refresh every 10 seconds or on notify
   };
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// Function to listen for label changes and update automatic charges accordingly
+async function handleLabelChange() {
+  const labels = await getCardLabels();
+  let data = await loadBillingData();
 
-// Export for manifest badge callback
-window.cardBadgeCallback = cardBadgeCallback;
+  // For each label that needs auto charge, add if missing
+  for (const label of Object.keys(LABEL_CHARGES)) {
+    if (labels.includes(label)) {
+      data = await addAutomaticChargeIfNeeded(label, data);
+    } else {
+      // If label removed, remove related automatic charges
+      data.charges = data.charges.filter(c => !(c.type === label && c.auto === true));
+    }
+  }
+
+  await saveBillingData(data);
+}
+
+// Setup Power-Up client capabilities
+t.render(() => {
+  // Register badge callback
+  t.card('id', 'labels')
+    .then(() => {
+      t.attach({
+        callback: badgeCallback
+      });
+    });
+
+  // Listen for label changes and update billing accordingly
+  handleLabelChange();
+
+  // Listen for billing data changed notifications
+  t.on('billingDataChanged', () => {
+    t.refresh();
+  });
+
+  // Notify Trello we’re ready
+  t.sizeToParent();
+});
