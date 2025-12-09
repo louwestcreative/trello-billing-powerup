@@ -1,26 +1,31 @@
 {
-  "id": "louwestcreative-trello-billing-powerup",
   "name": "Trello Billing Power-Up",
-  "description": "Track billing and payments on Trello cards",
-  "author": "Sarah Fontenot",
+  "id": "your-powerup-id",  // Replace with your Power-Up ID
   "version": "1.0.0",
-  "apiVersion": 1,
-  "card-back": {
-    "url": "https://louwestcreative.github.io/trello-billing-powerup/billing.html",
-    "height": 480
+  "description": "Track billing and payments on Trello cards with automated badges and card back interface.",
+  "author": "Your Name or Company",
+  "icon": {
+    "url": "https://yourdomain.com/icon.png"  // Replace with your icon URL
   },
-  "card-badges": {
-    "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html",
-    "refresh": 10
-  },
-  "show-authorization": {
-    "url": "https://louwestcreative.github.io/trello-billing-powerup/auth.html",
-    "height": 100
-  },
-  "iframeConnectorUrl": "https://louwestcreative.github.io/trello-billing-powerup/index.html",
-  "capabilities": {
-    "card-back": true,
-    "card-badges": true,
-    "show-authorization": true
-  }
-}
+  "baseUrl": "https://yourdomain.com/",  // Replace with your hosted root URL for your files
+  "capabilities": [
+    {
+      "name": "card-badges",
+      "type": "card-badges"
+    },
+    {
+      "name": "card-back",
+      "type": "card-detail-badges",
+      "url": "./billing.html"
+    },
+    {
+      "name": "client",
+      "type": "iframe",
+      "url": "./client.html"
+    }
+  ],
+  "permissions": [
+    "read",
+    "write"
+  ],
+  "apiVersion": 1
