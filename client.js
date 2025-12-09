@@ -1,57 +1,26 @@
-TrelloPowerUp.initialize({
-  'card-badges': function(t) {
-    return t.get('card', 'shared', 'billingData').then(data => {
-      if (!data) return [];
+const BASE_URL = "https://louwestcreative.github.io/trello-billing-powerup/";
 
-      let totalCharges = (data.charges || []).reduce((sum, c) => sum + c.amount, 0);
-      let totalPayments = (data.payments || []).reduce((sum, p) => sum + p.amount, 0);
-      let balance = totalCharges - totalPayments;
+window.TrelloPowerUp.initialize({
+  "card-badges": function(t) {
+    return t.get('card', 'shared', 'billingData')
+      .then(function(billingData) {
+        if (!billingData) billingData = { charges: [], payments: [] };
 
-      if (balance <= 0) return [];
+        const totalCharged = billingData.charges.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
+        const totalPaid = billingData.payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        const balance = totalCharged - totalPaid;
 
-      return [{
-        text: `$${balance.toFixed(2)} owed`,
-        color: 'red'
-      }];
-    });
-  },
-
-  'card-buttons': function(t) {
-    return [{
-      text: 'Billing Panel',
-      callback: function(t) {
-        return t.popup({
-          title: 'Billing',
-          url: 'https://louwestcreative.github.io/trello-billing-powerup/billing.html',
-          height: 500
-        });
-      }
-    }];
-  },
-
-  'card-detail-badges': function(t) {
-    return t.get('card', 'shared', 'billingData').then(data => {
-      if (!data) return [];
-
-      return [
-        {
-          title: 'Charges',
-          text: `${(data.charges || []).length} charges`
-        },
-        {
-          title: 'Payments',
-          text: `${(data.payments || []).length} payments`
-        }
-      ];
-    });
-  },
-
-  'callback': {
-    'card-update': function(t) {
-      return Promise.all([
-        t.get('card', 'labels'),
-        t.get('card', 'shared', 'billingData')
-      ]).then(([labels, data]) => {
-        data = data || { charges: [], payments: [], totalOwed: 0 };
-
-        const label
+        return [{
+          text: `$${balance.toFixed(2)}`,
+          color: balance > 0 ? 'red' : 'green',
+          callback: function(t) {
+            return t.popup({
+              title: 'Billing Details',
+              url: BASE_URL + 'billing.html',
+              height: 350
+            });
+          }
+        }];
+      });
+  }
+});
