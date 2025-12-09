@@ -1,20 +1,33 @@
 # Trello Billing Power-Up
 
-## What it does
+This Power-Up tracks billing and payments on Trello cards with automatic charges based on GAL labels.
 
-- Adds a card button "Add Payment" to track payments manually
-- Calculates total owed based on GAL retainer fees
-- Shows badges for Owed, Paid, and Balance on each card
+## Features
+- Auto-charge $2000 for Pierce GAL labels (`Pierce GAL`, `Pierce MG GAL`)
+- Auto-charge $4000 for Kitsap GAL labels (`Kitsap GAL`, `Kitsap MG GAL`)
+- Manually add charges (retainer, added fees, testimony) for GAL cases
+- Manually add payments with date and amount
+- Logs charges and payments inside card back
+- Badge on card front shows current balance (charged - paid)
 
-## How to use
+## Setup
+1. Host files on your server or GitHub Pages.
+2. Update `manifest.json` URLs accordingly.
+3. Upload manifest URL in your Trello Power-Up admin.
+4. Install the Power-Up on your boards.
 
-- Install Power-Up manifest in your Trello Power-Ups
-- Host the files (client.js, payment-entry.html) on GitHub Pages or similar
-- Use the "Add Payment" button on cards to log payments
-- Retainers are auto-calculated based on card labels "kitsap gal" or "pierce gal"
+## Usage
+- Open card back to view/add charges and payments.
+- Charges and payments are logged with date, type, and amount.
+- The badge updates automatically showing the current balance.
 
-## Deployment
+---
 
-- Upload this repo to GitHub
-- Serve static files via GitHub Pages (Settings > Pages)
-- Update manifest.json URLs to point to your hosted files
+**Labels supported for auto-charging:**
+
+- Pierce GAL: `Pierce GAL`, `Pierce MG GAL`
+- Kitsap GAL: `Kitsap GAL`, `Kitsap MG GAL`
+
+---
+
+For questions, contact Lou West Creative.
