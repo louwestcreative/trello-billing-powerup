@@ -1,35 +1,42 @@
 const t = TrelloPowerUp.iframe();
 
-// Load billing data or default empty arrays
 function loadBillingData() {
   return t.get('card', 'shared', 'billingData')
-    .then(data => data || { charges: [], payments: [] });
+    .then(data => data || { charges: [], payments: [] })
+    .catch(err => {
+      console.error('Error loading billing data:', err);
+      return { charges: [], payments: [] };
+    });
 }
 
-// Save billing data to Trello card shared storage
 function saveBillingData(data) {
-  return t.set('card', 'shared', 'billingData', data);
+  return t.set('card', 'shared', 'billingData', data)
+    .catch(err => {
+      console.error('Error saving billing data:', err);
+    });
 }
 
-// Escape HTML helper for safety
 function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, function(m) {
-    return ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[m];
-  });
+  if (!str) return '';
+  return str.replace(/[&<>"']/g, m => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[m]);
 }
 
-// Render logs to the UI
 function renderLogs(data) {
   const chargesDiv = document.getElementById('charges-log');
   const paymentsDiv = document.getElementById('payments-log');
 
-  if (data.charges.length === 0) {
+  if (!chargesDiv || !paymentsDiv) {
+    console.error('Missing charges-log or payments-log elements in the DOM');
+    return;
+  }
+
+  if (!data.charges || data.charges.length === 0) {
     chargesDiv.innerHTML = '<em>No charges recorded</em>';
   } else {
     chargesDiv.innerHTML = data.charges.map(c =>
@@ -37,70 +44,5 @@ function renderLogs(data) {
     ).join('');
   }
 
-  if (data.payments.length === 0) {
-    paymentsDiv.innerHTML = '<em>No payments recorded</em>';
-  } else {
-    paymentsDiv.innerHTML = data.payments.map(p =>
-      `<div class="log-entry">${escapeHTML(p.date)} — <strong>${escapeHTML(p.type)}</strong> — $${parseFloat(p.amount).toFixed(2)}</div>`
-    ).join('');
-  }
-}
-
-// Setup form handlers
-function setupFormHandlers() {
-  document.getElementById('charge-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const type = document.getElementById('charge-type').value;
-    const date = document.getElementById('charge-date').value;
-    const amount = parseFloat(document.getElementById('charge-amount').value);
-
-    if (!type || !date || isNaN(amount) || amount <= 0) {
-      alert('Please complete all charge fields correctly.');
-      return;
-    }
-
-    loadBillingData().then(data => {
-      data.charges.push({ type, date, amount });
-      return saveBillingData(data);
-    }).then(() => loadBillingData())
-      .then(updatedData => {
-        renderLogs(updatedData);
-        alert('Charge added successfully!');
-        e.target.reset();
-        t.notifyParent('billingDataChanged');
-      });
-  });
-
-  document.getElementById('payment-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const type = document.getElementById('payment-type').value;
-    const date = document.getElementById('payment-date').value;
-    const amount = parseFloat(document.getElementById('payment-amount').value);
-
-    if (!type || !date || isNaN(amount) || amount <= 0) {
-      alert('Please complete all payment fields correctly.');
-      return;
-    }
-
-    loadBillingData().then(data => {
-      data.payments.push({ type, date, amount });
-      return saveBillingData(data);
-    }).then(() => loadBillingData())
-      .then(updatedData => {
-        renderLogs(updatedData);
-        alert('Payment recorded successfully!');
-        e.target.reset();
-        t.notifyParent('billingDataChanged');
-      });
-  });
-}
-
-// Initialize the app
-function init() {
-  loadBillingData().then(renderLogs);
-  setupFormHandlers();
-}
-
-// Run on page load
-document.addEventListener('DOMContentLoaded', init);
-
+  if (!data.payments || data.payments.length === 0) {
+    paymentsDiv.innerHTML = '<em>No payments
