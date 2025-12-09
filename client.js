@@ -1,65 +1,57 @@
 TrelloPowerUp.initialize({
-  'card-badges': function (t) {
-    return t.get('card', 'shared', 'billingData')
-      .then(data => {
-        if (!data || !data.totalOwed) return [];
-        return [{
-          text: `$${data.totalOwed} owed`,
-          color: data.totalOwed > 0 ? 'red' : 'green'
-        }];
-      });
+  'card-badges': function(t) {
+    return t.get('card', 'shared', 'billingData').then(data => {
+      if (!data) return [];
+
+      let totalCharges = (data.charges || []).reduce((sum, c) => sum + c.amount, 0);
+      let totalPayments = (data.payments || []).reduce((sum, p) => sum + p.amount, 0);
+      let balance = totalCharges - totalPayments;
+
+      if (balance <= 0) return [];
+
+      return [{
+        text: `$${balance.toFixed(2)} owed`,
+        color: 'red'
+      }];
+    });
   },
 
-  'card-buttons': function (t) {
+  'card-buttons': function(t) {
     return [{
       text: 'Billing Panel',
-      callback: function () {
+      callback: function(t) {
         return t.popup({
           title: 'Billing',
-          url: './billing.html',
-          height: 400
+          url: 'https://louwestcreative.github.io/trello-billing-powerup/billing.html',
+          height: 500
         });
       }
     }];
   },
 
-  'card-detail-badges': function (t) {
+  'card-detail-badges': function(t) {
     return t.get('card', 'shared', 'billingData').then(data => {
       if (!data) return [];
-      const charges = data.charges || [];
-      const payments = data.payments || [];
+
       return [
         {
           title: 'Charges',
-          text: `${charges.length} charges`,
-          callback(t) {
-            return t.popup({
-              title: 'Charges',
-              url: './billing.html',
-              height: 400
-            });
-          }
+          text: `${(data.charges || []).length} charges`
         },
         {
           title: 'Payments',
-          text: `${payments.length} payments`,
-          callback(t) {
-            return t.popup({
-              title: 'Payments',
-              url: './billing.html',
-              height: 400
-            });
-          }
+          text: `${(data.payments || []).length} payments`
         }
       ];
     });
   },
 
   'callback': {
-    'card-update': function (t) {
-      return t.get('card', 'labels').then(labels => {
-        return t.get('card', 'shared', 'billingData').then(data => {
-          data = data || { charges: [], payments: [], totalOwed: 0 };
-          let changed = false;
+    'card-update': function(t) {
+      return Promise.all([
+        t.get('card', 'labels'),
+        t.get('card', 'shared', 'billingData')
+      ]).then(([labels, data]) => {
+        data = data || { charges: [], payments: [], totalOwed: 0 };
 
-          const labelNames
+        const label
