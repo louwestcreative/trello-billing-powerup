@@ -1,7 +1,7 @@
 {
   "name": "Trello Billing Power-Up",
   "id": "adb19533ff2ba076e2bcc1b3eed61e7e",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Track billing charges and payments directly on Trello cards with badges and a card-back interface.",
   "author": "Lou West Creative",
   "baseUrl": "https://louwestcreative.github.io/trello-billing-powerup/",
@@ -14,7 +14,7 @@
     },
     "card-back": {
       "url": "./billing.html",
-      "height": 480
+      "height": 520
     },
     "show-authorization": {
       "url": "./auth.html",
