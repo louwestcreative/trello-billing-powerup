@@ -8,24 +8,172 @@
     body {
       font-family: Arial, sans-serif;
       padding: 12px;
+      max-width: 400px;
+    }
+    label {
+      display: block;
+      margin: 8px 0 4px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 8px 12px;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    #log {
+      margin-top: 24px;
+    }
+    .log-entry {
+      border-bottom: 1px solid #ccc;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    .log-header {
+      font-weight: bold;
+      margin-top: 16px;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <h2>Billing & Payment Card Back</h2>
-  <p>This is your Trello Power-Up card back interface.</p>
+  <h2>Billing & Payment Log</h2>
+
+  <form id="charge-form">
+    <label for="charge-type">Charge Type</label>
+    <select id="charge-type" required>
+      <option value="" disabled selected>Select type</option>
+      <option value="retainer">Retainer</option>
+      <option value="added fees">Added Fees</option>
+      <option value="testimony">Testimony</option>
+    </select>
+
+    <label for="charge-date">Charge Date</label>
+    <input type="date" id="charge-date" required />
+
+    <label for="charge-amount">Charge Amount ($)</label>
+    <input type="number" id="charge-amount" step="0.01" min="0" required />
+
+    <button type="submit">Add Charge</button>
+  </form>
+
+  <form id="payment-form" style="margin-top: 20px;">
+    <label for="payment-type">Payment Type</label>
+    <select id="payment-type" required>
+      <option value="" disabled selected>Select type</option>
+      <option value="retainer">Retainer</option>
+      <option value="added fees">Added Fees</option>
+      <option value="testimony">Testimony</option>
+    </select>
+
+    <label for="payment-date">Payment Date</label>
+    <input type="date" id="payment-date" required />
+
+    <label for="payment-amount">Payment Amount ($)</label>
+    <input type="number" id="payment-amount" step="0.01" min="0" required />
+
+    <button type="submit">Add Payment</button>
+  </form>
+
+  <div id="log">
+    <div class="log-header">Charge Log</div>
+    <div id="charges-log"><em>No charges recorded</em></div>
+
+    <div class="log-header">Payment Log</div>
+    <div id="payments-log"><em>No payments recorded</em></div>
+  </div>
 
   <script>
-    // Initialize TrelloPowerUp iframe context
     const t = TrelloPowerUp.iframe();
 
-    // Example: log card info to console
-    t.card('name', 'id')
-      .then(card => {
-        console.log('Card name:', card.name);
-        console.log('Card ID:', card.id);
-      });
+    // Load billing data or default empty arrays
+    function loadBillingData() {
+      return t.get('card', 'shared', 'billingData')
+        .then(data => data || { charges: [], payments: [] });
+    }
+
+    // Save billing data to Trello card shared storage
+    function saveBillingData(data) {
+      return t.set('card', 'shared', 'billingData', data);
+    }
+
+    // Render logs to the UI
+    function renderLogs(data) {
+      const chargesDiv = document.getElementById('charges-log');
+      const paymentsDiv = document.getElementById('payments-log');
+
+      if (data.charges.length === 0) {
+        chargesDiv.innerHTML = '<em>No charges recorded</em>';
+      } else {
+        chargesDiv.innerHTML = data.charges.map(c =>
+          `<div class="log-entry">${c.date} — <strong>${c.type}</strong> — $${parseFloat(c.amount).toFixed(2)}</div>`
+        ).join('');
+      }
+
+      if (data.payments.length === 0) {
+        paymentsDiv.innerHTML = '<em>No payments recorded</em>';
+      } else {
+        paymentsDiv.innerHTML = data.payments.map(p =>
+          `<div class="log-entry">${p.date} — <strong>${p.type}</strong> — $${parseFloat(p.amount).toFixed(2)}</div>`
+        ).join('');
+      }
+    }
+
+    // Handle add charge form submit
+    document.getElementById('charge-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const type = document.getElementById('charge-type').value;
+      const date = document.getElementById('charge-date').value;
+      const amount = parseFloat(document.getElementById('charge-amount').value);
+
+      if (!type || !date || isNaN(amount) || amount <= 0) {
+        alert('Please complete all charge fields correctly.');
+        return;
+      }
+
+      loadBillingData().then(data => {
+        data.charges.push({ type, date, amount });
+        return saveBillingData(data);
+      }).then(() => loadBillingData())
+        .then(updatedData => {
+          renderLogs(updatedData);
+          alert('Charge added successfully!');
+          e.target.reset();
+          t.notifyParent('billingDataChanged');
+        });
+    });
+
+    // Handle add payment form submit
+    document.getElementById('payment-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const type = document.getElementById('payment-type').value;
+      const date = document.getElementById('payment-date').value;
+      const amount = parseFloat(document.getElementById('payment-amount').value);
+
+      if (!type || !date || isNaN(amount) || amount <= 0) {
+        alert('Please complete all payment fields correctly.');
+        return;
+      }
+
+      loadBillingData().then(data => {
+        data.payments.push({ type, date, amount });
+        return saveBillingData(data);
+      }).then(() => loadBillingData())
+        .then(updatedData => {
+          renderLogs(updatedData);
+          alert('Payment recorded successfully!');
+          e.target.reset();
+          t.notifyParent('billingDataChanged');
+        });
+    });
+
+    // Initial load of data
+    loadBillingData().then(renderLogs);
   </script>
 </body>
 </html>
-
