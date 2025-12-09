@@ -1,5 +1,5 @@
 {
-  "id": "your-power-up-id",
+  "id": "louwestcreative-trello-billing-powerup",
   "name": "Trello Billing Power-Up",
   "description": "Track billing and payments on Trello cards",
   "author": "Sarah Fontenot",
@@ -7,7 +7,7 @@
   "apiVersion": 1,
   "card-back": {
     "url": "https://louwestcreative.github.io/trello-billing-powerup/billing.html",
-    "height": 400
+    "height": 480
   },
   "card-badges": {
     "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html",
