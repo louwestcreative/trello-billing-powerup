@@ -1,30 +1,15 @@
 {
-  "id": "trello-billing-powerup",
-  "name": "Billing Power-Up",
-  "description": "Add payments to your Trello cards.",
-  "author": "Lou West Creative",
-  "version": "0.0.6",
-  "apiVersion": 1,
+  "name": "Trello Billing Power-Up",
+  "slug": "trello-billing-powerup",
+  "iframeConnectorUrl": "https://louwestcreative.github.io/trello-billing-powerup/index.html",
   "capabilities": [
-    "card-buttons",
     "card-badges",
     "card-detail-badges",
-    "card-back-section",
-    "board-buttons",
-    "show-settings",
-    "show-authorization"
+    "card-buttons",
+    "callback"
   ],
-  "connectors": [
-    {
-      "type": "iframe",
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
-    }
-  ],
-  "icons": {
-    "16": "images/icon-16.png",
-    "32": "images/icon-32.png",
-    "64": "images/icon-64.png",
-    "128": "images/icon-128.png"
-  },
-  "permissions": []
+  "author": "Lou West Creative",
+  "icon": {
+    "url": "https://louwestcreative.github.io/trello-billing-powerup/assets/icon.png"
+  }
 }
