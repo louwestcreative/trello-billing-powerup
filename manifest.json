@@ -5,23 +5,22 @@
   "author": "Sarah Fontenot",
   "version": "1.0.0",
   "apiVersion": 1,
-  "boardButtons": [],
-  "cardButtons": [],
-  "cardBack": {
+  "card-back": {
     "url": "https://louwestcreative.github.io/trello-billing-powerup/billing.html",
-    "height": 200
+    "height": 400
   },
-  "cardBadge": {
+  "card-badges": {
     "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html",
     "refresh": 10
   },
-  "showAuthorization": {
+  "show-authorization": {
     "url": "https://louwestcreative.github.io/trello-billing-powerup/auth.html",
     "height": 100
   },
   "iframeConnectorUrl": "https://louwestcreative.github.io/trello-billing-powerup/index.html",
   "capabilities": {
-    "card-back-section": true,
-    "card-badges": true
+    "card-back": true,
+    "card-badges": true,
+    "show-authorization": true
   }
 }
