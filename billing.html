@@ -4,67 +4,16 @@
   <meta charset="UTF-8" />
   <title>Billing & Payments</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 12px;
-      max-width: 420px;
-      background: #f9f9f9;
-    }
-    label {
-      display: block;
-      margin: 8px 0 4px;
-      font-weight: bold;
-    }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 12px;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      background-color: #0079bf;
-      border: none;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #026aa7;
-    }
-    #log {
-      margin-top: 24px;
-      background: white;
-      padding: 12px;
-      border-radius: 6px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-    .log-entry {
-      border-bottom: 1px solid #ddd;
-      padding: 6px 0;
-      font-size: 14px;
-      word-break: break-word;
-    }
-    .log-header {
-      font-weight: bold;
-      margin-top: 16px;
-      font-size: 16px;
-      border-bottom: 2px solid #0079bf;
-      padding-bottom: 4px;
-    }
-  </style>
+  <script src="https://louwestcreative.com/trello-powerup/billing.js" defer></script>
+  <link rel="stylesheet" href="https://louwestcreative.com/trello-powerup/style.css" />
 </head>
 <body>
   <h2>Billing & Payment Log</h2>
 
   <form id="charge-form" autocomplete="off">
-    <label for="charge-type">Charge Type (GAL only)</label>
-    <select id="charge-type" required>
-      <option value="" disabled selected>Select type</option>
+    <label for="charge-type">Charge Type (GAL Only)</label>
+    <select id="charge-type">
+      <option value="">Select type</option>
       <option value="retainer">Retainer</option>
       <option value="added fees">Added Fees</option>
       <option value="testimony">Testimony</option>
@@ -96,49 +45,5 @@
     <div class="log-header">Payment Log</div>
     <div id="payments-log"><em>No payments recorded</em></div>
   </div>
-
-  <script>
-    const t = TrelloPowerUp.iframe();
-
-    async function loadBillingData() {
-      const data = await t.get('card', 'shared', 'billingData');
-      return data || { charges: [], payments: [] };
-    }
-
-    async function saveBillingData(data) {
-      await t.set('card', 'shared', 'billingData', data);
-      t.notifyParent('billingDataChanged');
-    }
-
-    function escapeHTML(str) {
-      return str.replace(/[&<>"']/g, m => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      })[m]);
-    }
-
-    function renderLogs(data) {
-      const chargesDiv = document.getElementById('charges-log');
-      const paymentsDiv = document.getElementById('payments-log');
-
-      if (data.charges.length === 0) {
-        chargesDiv.innerHTML = '<em>No charges recorded</em>';
-      } else {
-        chargesDiv.innerHTML = data.charges.map(c =>
-          `<div class="log-entry">${escapeHTML(c.date)} — <strong>${escapeHTML(c.type)}</strong> — $${parseFloat(c.amount).toFixed(2)}</div>`
-        ).join('');
-      }
-
-      if (data.payments.length === 0) {
-        paymentsDiv.innerHTML = '<em>No payments recorded</em>';
-      } else {
-        paymentsDiv.innerHTML = data.payments.map(p =>
-          `<div class="log-entry">${escapeHTML(p.date)} — $${parseFloat(p.amount).toFixed(2)}</div>`
-        ).join('');
-      }
-    }
-
-    document.getElementById('char
+</body>
+</html>
