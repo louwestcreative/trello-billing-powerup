@@ -1,191 +1,149 @@
 const t = TrelloPowerUp.iframe();
 
-const PIERCE_GAL_LABELS = ['Pierce GAL', 'Pierce MG GAL'];
-const KITSAP_GAL_LABELS = ['Kitsap GAL', 'Kitsap MG GAL'];
-
-const AUTO_CHARGE_PIERCE = 2000;
-const AUTO_CHARGE_KITSAP = 4000;
-
-// Load billing data or default
-async function loadBillingData() {
-  const data = await t.get('card', 'shared', 'billingData');
-  return data || { charges: [], payments: [] };
+function loadBillingData() {
+  return t.get('card', 'shared', 'billingData').then(data => data || { charges: [], payments: [], autoChargesDone: false });
 }
 
-// Save billing data
 function saveBillingData(data) {
   return t.set('card', 'shared', 'billingData', data);
 }
 
-// Escape HTML for safety
-function escapeHTML(str) {
-  return String(str).replace(/[&<>"']/g, function (m) {
-    return {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    }[m];
-  });
+function notifyParent() {
+  t.notifyParent('billingDataChanged');
 }
 
-// Render charges and payments logs
-function renderLogs(data) {
-  const chargesDiv = document.getElementById('charges-log');
-  const paymentsDiv = document.getElementById('payments-log');
-
-  if (data.charges.length === 0) {
-    chargesDiv.innerHTML = '<em>No charges recorded</em>';
-  } else {
-    chargesDiv.innerHTML = data.charges
-      .map(
-        (c) =>
-          `<div class="log-entry">${escapeHTML(c.date)} — <strong>${escapeHTML(
-            c.type
-          )}</strong> — $${parseFloat(c.amount).toFixed(2)}</div>`
-      )
-      .join('');
-  }
-
-  if (data.payments.length === 0) {
-    paymentsDiv.innerHTML = '<em>No payments recorded</em>';
-  } else {
-    paymentsDiv.innerHTML = data.payments
-      .map(
-        (p) =>
-          `<div class="log-entry">${escapeHTML(p.date)} — Payment — $${parseFloat(
-            p.amount
-          ).toFixed(2)}</div>`
-      )
-      .join('');
-  }
+// Get card labels
+function getCardLabelNames() {
+  return t.card('labels').then(card => card.labels.map(label => label.name));
 }
 
-// Get all labels on the card
-async function getCardLabels() {
-  const card = await t.card('labels');
-  return card.labels.map((label) => label.name);
-}
+// Automatically add GAL charges if relevant labels present and not already added
+async function applyAutoCharges(data) {
+  if (data.autoChargesDone) return data;
 
-// Check for auto charges based on labels
-async function applyAutoChargesIfNeeded(data) {
-  const labels = await getCardLabels();
+  const labels = await getCardLabelNames();
+  const pierceGALLabels = ['Pierce GAL', 'Pierce MG GAL'];
+  const kitsapGALLabels = ['Kitsap GAL', 'Kitsap MG GAL'];
 
-  // Flags to avoid duplicates
-  const hasPierceCharge = data.charges.some((c) =>
-    ['Pierce GAL Auto Charge', 'Pierce MG GAL Auto Charge'].includes(c.type)
-  );
-  const hasKitsapCharge = data.charges.some((c) =>
-    ['Kitsap GAL Auto Charge', 'Kitsap MG GAL Auto Charge'].includes(c.type)
-  );
+  const newCharges = [];
 
-  const today = new Date().toISOString().slice(0, 10);
-
-  if (
-    labels.some((l) => PIERCE_GAL_LABELS.includes(l)) &&
-    !hasPierceCharge
-  ) {
-    // Add Pierce GAL auto charge
-    data.charges.push({
-      type: 'Pierce GAL Auto Charge',
-      date: today,
-      amount: AUTO_CHARGE_PIERCE,
+  if (labels.some(l => pierceGALLabels.includes(l))) {
+    newCharges.push({
+      type: 'retainer (auto)',
+      date: new Date().toISOString().slice(0, 10),
+      amount: 2000,
     });
   }
 
-  if (
-    labels.some((l) => KITSAP_GAL_LABELS.includes(l)) &&
-    !hasKitsapCharge
-  ) {
-    // Add Kitsap GAL auto charge
-    data.charges.push({
-      type: 'Kitsap GAL Auto Charge',
-      date: today,
-      amount: AUTO_CHARGE_KITSAP,
+  if (labels.some(l => kitsapGALLabels.includes(l))) {
+    newCharges.push({
+      type: 'retainer (auto)',
+      date: new Date().toISOString().slice(0, 10),
+      amount: 4000,
     });
   }
+
+  data.charges = data.charges.concat(newCharges);
+  data.autoChargesDone = true;
 
   await saveBillingData(data);
   return data;
 }
 
-// Update badge with balance
-async function updateBadge() {
-  const data = await loadBillingData();
-  const totalCharged = data.charges.reduce((acc, c) => acc + Number(c.amount), 0);
-  const totalPaid = data.payments.reduce((acc, p) => acc + Number(p.amount), 0);
-  const balance = totalCharged - totalPaid;
-
-  t.card('labels').then((card) => {
-    // Here you could update badges via t.set or notifyParent as needed
-    // For demo, this just logs balance
-    console.log('Balance:', balance.toFixed(2));
-  });
-
-  return {
-    text: `$${balance.toFixed(2)}`,
-    color: balance > 0 ? 'red' : 'green',
-  };
+function clearForm(form) {
+  form.reset();
 }
 
-// Setup event listeners for forms
-function setupFormHandlers() {
-  const chargeForm = document.getElementById('charge-form');
-  const paymentForm = document.getElementById('payment-form');
+function validateChargeForm(type, date, amount) {
+  if (!type || !date || isNaN(amount) || amount <= 0) {
+    alert('Please complete all charge fields correctly.');
+    return false;
+  }
+  return true;
+}
 
-  chargeForm.addEventListener('submit', async (e) => {
+function validatePaymentForm(date, amount) {
+  if (!date || isNaN(amount) || amount <= 0) {
+    alert('Please complete all payment fields correctly.');
+    return false;
+  }
+  return true;
+}
+
+function init() {
+  // Disable charge type select if card is not GAL (based on labels)
+  getCardLabelNames().then(labels => {
+    const galLabels = ['Pierce GAL', 'Pierce MG GAL', 'Kitsap GAL', 'Kitsap MG GAL'];
+    const isGAL = labels.some(l => galLabels.includes(l));
+    const chargeTypeSelect = document.getElementById('charge-type');
+    if (!isGAL) {
+      chargeTypeSelect.disabled = true;
+      chargeTypeSelect.value = '';
+      chargeTypeSelect.innerHTML = '<option>No GAL labels on card</option>';
+    }
+  });
+
+  // Apply auto charges on load
+  loadBillingData()
+    .then(applyAutoCharges)
+    .then(() => {
+      // Nothing else needed on load here
+    });
+
+  // Charge form submit handler
+  document.getElementById('charge-form').addEventListener('submit', e => {
     e.preventDefault();
-
     const type = document.getElementById('charge-type').value;
     const date = document.getElementById('charge-date').value;
     const amount = parseFloat(document.getElementById('charge-amount').value);
 
-    if (!type || !date || isNaN(amount) || amount <= 0) {
-      alert('Please complete all charge fields correctly.');
-      return;
-    }
+    if (!validateChargeForm(type, date, amount)) return;
 
-    let data = await loadBillingData();
-    data.charges.push({ type, date, amount });
-    await saveBillingData(data);
-
-    data = await applyAutoChargesIfNeeded(data); // Ensure auto charges present
-
-    renderLogs(data);
-    alert('Charge added successfully!');
-    chargeForm.reset();
-    t.notifyParent('billingDataChanged');
+    loadBillingData().then(data => {
+      data.charges.push({ type, date, amount });
+      return saveBillingData(data);
+    }).then(() => {
+      alert('Charge added successfully!');
+      clearForm(e.target);
+      notifyParent();
+    });
   });
 
-  paymentForm.addEventListener('submit', async (e) => {
+  // Payment form submit handler
+  document.getElementById('payment-form').addEventListener('submit', e => {
     e.preventDefault();
-
     const date = document.getElementById('payment-date').value;
     const amount = parseFloat(document.getElementById('payment-amount').value);
 
-    if (!date || isNaN(amount) || amount <= 0) {
-      alert('Please complete all payment fields correctly.');
-      return;
-    }
+    if (!validatePaymentForm(date, amount)) return;
 
-    let data = await loadBillingData();
-    data.payments.push({ type: 'Payment', date, amount });
-    await saveBillingData(data);
-
-    renderLogs(data);
-    alert('Payment recorded successfully!');
-    paymentForm.reset();
-    t.notifyParent('billingDataChanged');
+    loadBillingData().then(data => {
+      data.payments.push({ type: 'GAL Payment', date, amount });
+      return saveBillingData(data);
+    }).then(() => {
+      alert('Payment recorded successfully!');
+      clearForm(e.target);
+      notifyParent();
+    });
   });
 }
 
-// Initialize app
-async function init() {
-  let data = await loadBillingData();
-  data = await applyAutoChargesIfNeeded(data);
-  renderLogs(data);
-  setupFormHandlers();
+// Card Badge callback to show current balance
+async function cardBadgeCallback(t, options) {
+  const data = await loadBillingData();
+  // Calculate balance: sum charges - sum payments
+  const sumCharges = data.charges.reduce((acc, c) => acc + parseFloat(c.amount || 0), 0);
+  const sumPayments = data.payments.reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
+  const balance = sumCharges - sumPayments;
+
+  return {
+    text: `$${balance.toFixed(2)} owed`,
+    color: balance > 0 ? 'red' : 'green',
+    refresh: 10
+  };
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// Export for manifest badge callback
+window.cardBadgeCallback = cardBadgeCallback;
