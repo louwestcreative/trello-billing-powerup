@@ -2,41 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Lou West Creative Billing</title>
+  <title>Billing & Payments Client</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <script src="https://louwestcreative.com/trello-powerup/client.js" defer></script>
+  <link rel="stylesheet" href="https://louwestcreative.com/trello-powerup/style.css" />
 </head>
 <body>
-  <h2>Billing & Payments</h2>
-
-  <form id="charge-form" autocomplete="off">
-    <label for="charge-type">Charge Type (GAL only)</label>
-    <select id="charge-type" required>
-      <option value="" disabled selected>Select type</option>
-      <option value="retainer">Retainer</option>
-      <option value="added fees">Added Fees</option>
-      <option value="testimony">Testimony</option>
-    </select>
-
-    <label for="charge-date">Charge Date</label>
-    <input type="date" id="charge-date" required />
-
-    <label for="charge-amount">Charge Amount ($)</label>
-    <input type="number" id="charge-amount" step="0.01" min="0" required />
-
-    <button type="submit">Add Charge</button>
-  </form>
-
-  <form id="payment-form" autocomplete="off" style="margin-top: 20px;">
-    <label for="payment-date">Payment Date</label>
-    <input type="date" id="payment-date" required />
-
-    <label for="payment-amount">Payment Amount ($)</label>
-    <input type="number" id="payment-amount" step="0.01" min="0" required />
-
-    <button type="submit">Add Payment</button>
-  </form>
-
-  <script src="client.js"></script>
+  <h2>Billing Overview</h2>
+  <div id="balance-display">Loading balance...</div>
+  <div id="charges-summary"></div>
+  <div id="payments-summary"></div>
 </body>
 </html>
