@@ -1,27 +1,32 @@
 {
+  "name": "Lou West Creative Billing Power-Up",
   "id": "adb19533ff2ba076e2bcc1b3eed61e7e",
-  "name": "Lou West Creative Trello Billing Power-Up",
-  "description": "Manage billing and payments with automatic GAL charges",
-  "icons": {
-    "16": "icon16.png",
-    "32": "icon32.png",
-    "64": "icon64.png"
-  },
+  "description": "Manage billing and payments for GAL and CV cases within Trello cards.",
   "author": "Sarah Fontenot",
-  "version": "1.0",
+  "icon": "https://louwestcreative.github.io/trello-billing-powerup/icon.png",
+  "apiVersion": 1,
+  "version": "1.0.0",
   "permissions": ["read", "write"],
   "capabilities": {
+    "card-back": {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/billing.html",
+      "height": 600
+    },
+    "board-buttons": {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html",
+      "icon": "https://louwestcreative.github.io/trello-billing-powerup/icon.png",
+      "text": "Billing"
+    },
     "card-badges": {
-      "callback": "client.js#cardBadgeCallback",
-      "refresh": 5
+      "callback": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
     },
-    "card-back-section": {
-      "url": "billing.html",
-      "height": 350,
-      "title": "Billing & Payments"
-    },
-    "attachment-sections": {}
+    "client": {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
+    }
   },
-  "connectors": {},
-  "webhooks": []
+  "webhooks": [],
+  "actions": [],
+  "urls": {
+    "iframeConnector": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
+  }
 }
