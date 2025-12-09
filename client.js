@@ -1,105 +1,31 @@
-const t = TrelloPowerUp.iframe();
+window.TrelloPowerUp.initialize({
+  // Card badges show the balance owed (charges - payments)
+  'card-badges': function(t, opts) {
+    return t.get('card', 'shared', 'billingData')
+      .then(data => {
+        data = data || { charges: [], payments: [] };
 
-// Load billing data or default empty arrays
-function loadBillingData() {
-  return t.get('card', 'shared', 'billingData')
-    .then(data => data || { charges: [], payments: [] });
-}
+        const totalCharges = data.charges.reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
+        const totalPayments = data.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        const balance = totalCharges - totalPayments;
 
-// Save billing data to Trello card shared storage
-function saveBillingData(data) {
-  return t.set('card', 'shared', 'billingData', data);
-}
-
-// Escape HTML helper for safety
-function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, function(m) {
-    return ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[m];
-  });
-}
-
-// Render logs to the UI
-function renderLogs(data) {
-  const chargesDiv = document.getElementById('charges-log');
-  const paymentsDiv = document.getElementById('payments-log');
-
-  if (data.charges.length === 0) {
-    chargesDiv.innerHTML = '<em>No charges recorded</em>';
-  } else {
-    chargesDiv.innerHTML = data.charges.map(c =>
-      `<div class="log-entry">${escapeHTML(c.date)} — <strong>${escapeHTML(c.type)}</strong> — $${parseFloat(c.amount).toFixed(2)}</div>`
-    ).join('');
-  }
-
-  if (data.payments.length === 0) {
-    paymentsDiv.innerHTML = '<em>No payments recorded</em>';
-  } else {
-    paymentsDiv.innerHTML = data.payments.map(p =>
-      `<div class="log-entry">${escapeHTML(p.date)} — <strong>${escapeHTML(p.type)}</strong> — $${parseFloat(p.amount).toFixed(2)}</div>`
-    ).join('');
-  }
-}
-
-// Setup form handlers
-function setupFormHandlers() {
-  document.getElementById('charge-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const type = document.getElementById('charge-type').value;
-    const date = document.getElementById('charge-date').value;
-    const amount = parseFloat(document.getElementById('charge-amount').value);
-
-    if (!type || !date || isNaN(amount) || amount <= 0) {
-      alert('Please complete all charge fields correctly.');
-      return;
-    }
-
-    loadBillingData().then(data => {
-      data.charges.push({ type, date, amount });
-      return saveBillingData(data);
-    }).then(() => loadBillingData())
-      .then(updatedData => {
-        renderLogs(updatedData);
-        alert('Charge added successfully!');
-        e.target.reset();
-        t.notifyParent('billingDataChanged');
+        return [{
+          text: `$${balance.toFixed(2)}`,
+          color: balance > 0 ? 'red' : 'green',
+          refresh: 30 // refresh badge every 30 seconds
+        }];
+      })
+      .catch(() => {
+        // In case of error, don't show badge
+        return [];
       });
-  });
+  },
 
-  document.getElementById('payment-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const type = document.getElementById('payment-type').value;
-    const date = document.getElementById('payment-date').value;
-    const amount = parseFloat(document.getElementById('payment-amount').value);
-
-    if (!type || !date || isNaN(amount) || amount <= 0) {
-      alert('Please complete all payment fields correctly.');
-      return;
-    }
-
-    loadBillingData().then(data => {
-      data.payments.push({ type, date, amount });
-      return saveBillingData(data);
-    }).then(() => loadBillingData())
-      .then(updatedData => {
-        renderLogs(updatedData);
-        alert('Payment recorded successfully!');
-        e.target.reset();
-        t.notifyParent('billingDataChanged');
-      });
-  });
-}
-
-// Initialize the app
-function init() {
-  loadBillingData().then(renderLogs);
-  setupFormHandlers();
-}
-
-// Run on page load
-document.addEventListener('DOMContentLoaded', init);
+  // Card back loads the billing.html page from the same directory
+  'card-back': function(t, opts) {
+    return {
+      url: t.signUrl('./billing.html'),  // Ensure URL is signed for Trello security
+      height: 600
+    };
+  }
+});
