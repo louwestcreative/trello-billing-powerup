@@ -1,4 +1,26 @@
 {
+  "id": "692e5a8a765c433f0b7f4a7f",
+  "name": "Trello Billing Power-Up",
+  "description": "Billing and payments tracker for GAL and CV cases",
+  "author": "Sarah Fontenot",
+  "icon": {
+    "url": "https://louwestcreative.com/trello-powerup/icon.png"
+  },
+  "connectors": {
+    "iframe": "https://louwestcreative.com/trello-powerup/client.html"
+  },
+  "capabilities": {
+    "card-badges": {
+      "callback": "https://louwestcreative.com/trello-powerup/client.js"
+    },
+    "card-back-section": {
+      "url": "https://louwestcreative.com/trello-powerup/billing.html",
+      "height": 600
+    }
+  },
+  "permissions": ["read", "write"]
+}
+{
   "name": "Lou West Creative Billing Power-Up",
   "id": "adb19533ff2ba076e2bcc1b3eed61e7e",
   "description": "Manage billing and payments for GAL and CV cases within Trello cards.",
