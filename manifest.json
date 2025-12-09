@@ -1,25 +1,27 @@
 {
   "id": "adb19533ff2ba076e2bcc1b3eed61e7e",
-  "name": "Trello Billing Power-Up",
-  "description": "Track billing and payments with auto charges based on GAL labels.",
-  "author": "Lou West Creative",
-  "version": "1.0",
-  "icon": {
-    "url": "https://yourdomain.com/icon.png",
-    "url2x": "https://yourdomain.com/icon@2x.png"
+  "name": "Lou West Creative Trello Billing Power-Up",
+  "description": "Manage billing and payments with automatic GAL charges",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "64": "icon64.png"
   },
+  "author": "Sarah Fontenot",
+  "version": "1.0",
+  "permissions": ["read", "write"],
   "capabilities": {
     "card-badges": {
-      "callback": "https://yourdomain.com/client.js"
+      "callback": "client.js#cardBadgeCallback",
+      "refresh": 5
     },
     "card-back-section": {
-      "url": "https://yourdomain.com/client.html",
-      "height": 600
-    }
+      "url": "billing.html",
+      "height": 350,
+      "title": "Billing & Payments"
+    },
+    "attachment-sections": {}
   },
-  "permissions": [
-    "read",
-    "write"
-  ],
-  "apiVersion": 1
+  "connectors": {},
+  "webhooks": []
 }
