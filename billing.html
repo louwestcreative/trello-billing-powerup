@@ -8,7 +8,8 @@
     body {
       font-family: Arial, sans-serif;
       padding: 12px;
-      max-width: 400px;
+      max-width: 420px;
+      background: #f9f9f9;
     }
     label {
       display: block;
@@ -17,20 +18,33 @@
     }
     input, select {
       width: 100%;
-      padding: 6px;
+      padding: 8px;
       margin-bottom: 12px;
       box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
     }
     button {
-      padding: 8px 12px;
-      margin-top: 8px;
+      background-color: #0079bf;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 4px;
+      font-weight: bold;
       cursor: pointer;
+    }
+    button:hover {
+      background-color: #026aa7;
     }
     #log {
       margin-top: 24px;
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     .log-entry {
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid #ddd;
       padding: 6px 0;
       font-size: 14px;
     }
@@ -38,13 +52,15 @@
       font-weight: bold;
       margin-top: 16px;
       font-size: 16px;
+      border-bottom: 2px solid #0079bf;
+      padding-bottom: 4px;
     }
   </style>
 </head>
 <body>
   <h2>Billing & Payment Log</h2>
 
-  <form id="charge-form">
+  <form id="charge-form" autocomplete="off">
     <label for="charge-type">Charge Type</label>
     <select id="charge-type" required>
       <option value="" disabled selected>Select type</option>
@@ -62,7 +78,7 @@
     <button type="submit">Add Charge</button>
   </form>
 
-  <form id="payment-form" style="margin-top: 20px;">
+  <form id="payment-form" autocomplete="off" style="margin-top: 20px;">
     <label for="payment-type">Payment Type</label>
     <select id="payment-type" required>
       <option value="" disabled selected>Select type</option>
@@ -111,7 +127,7 @@
         chargesDiv.innerHTML = '<em>No charges recorded</em>';
       } else {
         chargesDiv.innerHTML = data.charges.map(c =>
-          `<div class="log-entry">${c.date} — <strong>${c.type}</strong> — $${parseFloat(c.amount).toFixed(2)}</div>`
+          `<div class="log-entry">${escapeHTML(c.date)} — <strong>${escapeHTML(c.type)}</strong> — $${parseFloat(c.amount).toFixed(2)}</div>`
         ).join('');
       }
 
@@ -119,9 +135,22 @@
         paymentsDiv.innerHTML = '<em>No payments recorded</em>';
       } else {
         paymentsDiv.innerHTML = data.payments.map(p =>
-          `<div class="log-entry">${p.date} — <strong>${p.type}</strong> — $${parseFloat(p.amount).toFixed(2)}</div>`
+          `<div class="log-entry">${escapeHTML(p.date)} — <strong>${escapeHTML(p.type)}</strong> — $${parseFloat(p.amount).toFixed(2)}</div>`
         ).join('');
       }
+    }
+
+    // Simple escape HTML to prevent injection
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, function(m) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[m];
+      });
     }
 
     // Handle add charge form submit
@@ -144,6 +173,7 @@
           renderLogs(updatedData);
           alert('Charge added successfully!');
           e.target.reset();
+          // Notify Trello to refresh badge (if you have it wired)
           t.notifyParent('billingDataChanged');
         });
     });
@@ -168,6 +198,7 @@
           renderLogs(updatedData);
           alert('Payment recorded successfully!');
           e.target.reset();
+          // Notify Trello to refresh badge (if you have it wired)
           t.notifyParent('billingDataChanged');
         });
     });
