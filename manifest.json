@@ -1,54 +1,28 @@
 {
-  "id": "692e5a8a765c433f0b7f4a7f",
+  "id": "louwestcreative-trello-billing-powerup",
   "name": "Trello Billing Power-Up",
-  "description": "Billing and payments tracker for GAL and CV cases",
-  "author": "Sarah Fontenot",
-  "icon": {
-    "url": "https://louwestcreative.com/trello-powerup/icon.png"
-  },
+  "description": "Power-Up for billing and payment tasks",
+  "author": "Lou West Creative",
   "connectors": {
-    "iframe": "https://louwestcreative.com/trello-powerup/client.html"
+    "iframe": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
   },
-  "capabilities": {
-    "card-badges": {
-      "callback": "https://louwestcreative.com/trello-powerup/client.js"
-    },
-    "card-back-section": {
-      "url": "https://louwestcreative.com/trello-powerup/billing.html",
-      "height": 600
+  "capabilities": [
+    "card-buttons",
+    "card-badges",
+    "board-buttons",
+    "show-settings"
+  ],
+  "clientScripts": [
+    {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
     }
-  },
-  "permissions": ["read", "write"]
-}
-{
-  "name": "Lou West Creative Billing Power-Up",
-  "id": "adb19533ff2ba076e2bcc1b3eed61e7e",
-  "description": "Manage billing and payments for GAL and CV cases within Trello cards.",
-  "author": "Sarah Fontenot",
-  "icon": "https://louwestcreative.github.io/trello-billing-powerup/icon.png",
-  "apiVersion": 1,
-  "version": "1.0.0",
-  "permissions": ["read", "write"],
-  "capabilities": {
-    "card-back": {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/billing.html",
-      "height": 600
-    },
-    "board-buttons": {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html",
-      "icon": "https://louwestcreative.github.io/trello-billing-powerup/icon.png",
-      "text": "Billing"
-    },
-    "card-badges": {
-      "callback": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
-    },
-    "client": {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
+  ],
+  "staticFiles": [
+    {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html"
     }
-  },
-  "webhooks": [],
-  "actions": [],
-  "urls": {
-    "iframeConnector": "https://louwestcreative.github.io/trello-billing-powerup/client.html"
+  ],
+  "icon": {
+    "url": "https://louwestcreative.github.io/trello-billing-powerup/icon.png"
   }
 }
