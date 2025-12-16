@@ -1,28 +1,17 @@
 {
-  "id": "louwestcreative-trello-billing-powerup",
-  "name": "Trello Billing Power-Up",
-  "description": "Power-Up for billing and payment tasks",
-  "author": "Lou West Creative",
-  "connectors": {
-    "iframe": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
-  },
-  "capabilities": [
-    "card-buttons",
-    "card-badges",
-    "board-buttons",
-    "show-settings"
-  ],
-  "clientScripts": [
-    {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js"
-    }
-  ],
-  "staticFiles": [
-    {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/payment-entry.html"
-    }
-  ],
+  "name": "Billing Power-Up",
+  "details": "Simple billing tracker Power-Up",
   "icon": {
     "url": "https://louwestcreative.github.io/trello-billing-powerup/icon.png"
+  },
+  "author": "Lou West Creative",
+  "capabilities": [
+    "card-buttons",
+    "card-back-section"
+  ],
+  "connectors": {
+    "iframe": {
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/index.html"
+    }
   }
 }
