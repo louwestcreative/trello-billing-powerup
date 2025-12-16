@@ -1,49 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Billing & Payments</title>
+  <meta charset="utf-8" />
+  <title>Billing</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <script src="https://louwestcreative.com/trello-powerup/billing.js" defer></script>
-  <link rel="stylesheet" href="https://louwestcreative.com/trello-powerup/style.css" />
 </head>
 <body>
-  <h2>Billing & Payment Log</h2>
+  <h3>Billing Info</h3>
+  <p>This Power-Up is now working.</p>
 
-  <form id="charge-form" autocomplete="off">
-    <label for="charge-type">Charge Type (GAL Only)</label>
-    <select id="charge-type">
-      <option value="">Select type</option>
-      <option value="retainer">Retainer</option>
-      <option value="added fees">Added Fees</option>
-      <option value="testimony">Testimony</option>
-    </select>
-
-    <label for="charge-date">Charge Date</label>
-    <input type="date" id="charge-date" required />
-
-    <label for="charge-amount">Charge Amount ($)</label>
-    <input type="number" id="charge-amount" step="0.01" min="0" required />
-
-    <button type="submit">Add Charge</button>
-  </form>
-
-  <form id="payment-form" autocomplete="off" style="margin-top: 20px;">
-    <label for="payment-date">Payment Date</label>
-    <input type="date" id="payment-date" required />
-
-    <label for="payment-amount">Payment Amount ($)</label>
-    <input type="number" id="payment-amount" step="0.01" min="0" required />
-
-    <button type="submit">Add Payment</button>
-  </form>
-
-  <div id="log">
-    <div class="log-header">Charge Log</div>
-    <div id="charges-log"><em>No charges recorded</em></div>
-
-    <div class="log-header">Payment Log</div>
-    <div id="payments-log"><em>No payments recorded</em></div>
-  </div>
+  <script>
+    var t = TrelloPowerUp.iframe();
+    t.render(function () {
+      t.sizeTo('#body');
+    });
+  </script>
 </body>
 </html>
