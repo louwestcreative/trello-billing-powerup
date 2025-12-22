@@ -3,8 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <title>Billing Power-Up</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      max-width: 400px;
+    }
+    h3 {
+      margin-bottom: 5px;
+    }
+    .section {
+      margin-bottom: 15px;
+    }
+  </style>
 </head>
 <body>
+  <div id="balance-display">Loading balance...</div>
+  <div id="charges-summary"><h3>Charges</h3>Loading charges...</div>
+  <div id="payments-summary"><h3>Payments</h3>Loading payments...</div>
+
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <script src="./client.js"></script>
 </body>
