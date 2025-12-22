@@ -1,19 +1,25 @@
 {
+  "manifest_version": 1,
   "name": "Billing Power-Up",
-  "details": "Simple billing tracker Power-Up",
-  "icon": {
-    "url": "https://louwestcreative.github.io/trello-billing-powerup/coin.png"
-  },
+  "description": "Manage billing information directly on Trello cards",
   "author": "Lou West Creative",
+  "version": "1.0.0",
+  "icons": {
+    "16": "https://cdn-icons-png.flaticon.com/512/263/263115.png",
+    "32": "https://cdn-icons-png.flaticon.com/512/263/263115.png",
+    "64": "https://cdn-icons-png.flaticon.com/512/263/263115.png",
+    "128": "https://cdn-icons-png.flaticon.com/512/263/263115.png"
+  },
   "capabilities": [
     "card-back-section",
     "card-buttons",
     "card-badges",
     "board-buttons"
   ],
-  "connectors": {
-    "iframe": {
-      "url": "https://louwestcreative.github.io/trello-billing-powerup/index.html"
-    }
-  }
+  "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js",
+  "iframe": "https://louwestcreative.github.io/trello-billing-powerup/index.html",
+  "authorUrl": "https://louwestcreative.github.io",
+  "license": "MIT",
+  "permissions": ["read", "write"],
+  "categories": ["Productivity", "Finance"]
 }
