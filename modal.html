@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Add Charge/Payment</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 15px; max-width: 400px; }
+    label { display: block; margin-top: 10px; }
+    input, select { width: 100%; padding: 8px; margin-top: 5px; }
+    button { margin-top: 15px; padding: 10px 15px; }
+    .error { color: red; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h3 id="form-title">Add Entry</h3>
+  <form id="billing-form">
+    <label>Date
+      <input type="date" id="date" required />
+    </label>
+    <label>Type
+      <select id="type" required>
+        <option value="">Select Type</option>
+        <option value="Service">Service</option>
+        <option value="Product">Product</option>
+        <option value="Other">Other</option>
+      </select>
+    </label>
+    <label>Amount ($)
+      <input type="number" id="amount" min="0" step="0.01" required />
+    </label>
+    <button type="submit">Save</button>
+    <div class="error" id="error-msg"></div>
+  </form>
+
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <script>
+    const t = TrelloPowerUp.iframe();
+
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    async function saveEntry(type, entry) {
+      const data = await t.get('card', 'shared', 'billingData') || { charges: [], payments: [] };
+      if (type === 'charge') {
+        data.charges.push(entry);
+      } else if (type === 'payment') {
+        data.payments.push(entry);
+      }
+      await t.set('card', 'shared', 'billingData', data);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const type = getQueryParam('type');
+      document.getElementById('form-title').textContent = `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+
+      document.getElementById('billing-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const date = document.getElementById('date').value;
+        const entryType = document.getElementById('type').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+        const errorMsg = document.getElementById('error-msg');
+        errorMsg.textContent = '';
+
+        if (!date || !entryType || isNaN(amount) || amount < 0) {
+          errorMsg.textContent = 'Please fill out all fields correctly.';
+          return;
+        }
+
+        await saveEntry(type, { date, type: entryType, amount });
+
+        t.closeModal({ refresh: true });
+      });
+    });
+  </script>
+</body>
+</html>
