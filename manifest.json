@@ -6,8 +6,9 @@
   },
   "author": "Lou West Creative",
   "capabilities": [
+    "card-back-section",
     "card-buttons",
-    "card-back-section"
+    "card-badges"
   ],
   "connectors": {
     "iframe": {
