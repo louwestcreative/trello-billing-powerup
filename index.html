@@ -4,17 +4,34 @@
   <meta charset="UTF-8" />
   <title>Billing Info</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <script src="./index.js" defer></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 10px; }
-    h3 { margin-bottom: 5px; }
-    #balance-display { font-weight: bold; margin-bottom: 15px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      margin: 0;
+    }
+    h3 {
+      margin-bottom: 5px;
+    }
+    #balance-display {
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
-  <h3>Billing Information</h3>
-  <div id="balance-display">Loading...</div>
-  <div id="charges-summary"></div>
-  <div id="payments-summary"></div>
-</body>
-</html>
+  <div id="balance-display">Loading balance...</div>
+  <div id="charges-summary">Loading charges...</div>
+  <div id="payments-summary">Loading payments...</div>
+
+  <script>
+    const t = TrelloPowerUp.iframe();
+
+    async function loadBillingData() {
+      const data = await t.get('card', 'shared', 'billingData');
+      return data || { charges: [], payments: [] };
+    }
+
+    function calculateBalance(data) {
+      const totalCharges = data.charges.reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
+      const totalPayments = data.payments.reduce((sum, p) => sum + (parseFloat(p.amoun
