@@ -1,41 +1,17 @@
 {
-  "manifest_version": 1,
+  "id": "692e5a8a765c433f0b7f4a7f",
   "name": "Billing Power-Up",
-  "description": "Manage billing info",
+  "description": "Manage billing information with charges, payments, and balance tracking.",
   "author": "Lou West Creative",
   "version": "1.0",
-  "icons": {
-    "16": "https://louwestcreative.github.io/trello-billing-powerup/coin.png"
-  },
-  "capabilities": [
-    "card-back-section"
-  ],
-  "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js",
-  "iframe": "https://louwestcreative.github.io/trello-billing-powerup/index.html",
-  "permissions": ["read", "write"]
-}
-{
-  "manifest_version": 1,
-  "name": "Billing Power-Up",
-  "description": "Manage billing information directly on Trello cards",
-  "author": "Lou West Creative",
-  "version": "1.0.0",
-  "icons": {
-    "16": "https://cdn-icons-png.flaticon.com/512/263/263115.png",
-    "32": "https://cdn-icons-png.flaticon.com/512/263/263115.png",
-    "64": "https://cdn-icons-png.flaticon.com/512/263/263115.png",
-    "128": "https://cdn-icons-png.flaticon.com/512/263/263115.png"
-  },
+  "icon": "https://louwestcreative.github.io/trello-billing-powerup/coin.png",
   "capabilities": [
     "card-back-section",
     "card-buttons",
     "card-badges",
     "board-buttons"
   ],
-  "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js",
-  "iframe": "https://louwestcreative.github.io/trello-billing-powerup/index.html",
-  "authorUrl": "https://louwestcreative.github.io",
-  "license": "MIT",
   "permissions": ["read", "write"],
-  "categories": ["Productivity", "Finance"]
+  "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js",
+  "iframe": "https://louwestcreative.github.io/trello-billing-powerup/index.html"
 }
