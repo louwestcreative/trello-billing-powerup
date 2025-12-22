@@ -1,44 +1,6 @@
-const t = TrelloPowerUp.iframe();
+// client.js
 
-async function loadBillingData() {
-  const data = await t.get('card', 'shared', 'billingData');
-  return data || { charges: [], payments: [] };
-}
-
-function calculateBalance(data) {
-  const totalCharges = data.charges.reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
-  const totalPayments = data.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-  return totalCharges - totalPayments;
-}
-
-function formatCurrency(amount) {
-  return `$${amount.toFixed(2)}`;
-}
-
-async function render() {
-  try {
-    const data = await loadBillingData();
-    const balance = calculateBalance(data);
-
-    document.getElementById('balance-display').textContent = `Balance Owed: ${formatCurrency(balance)}`;
-
-    const chargesSummary = data.charges.length > 0
-      ? data.charges.map(c => `${c.date} - ${c.type || 'N/A'} - ${formatCurrency(parseFloat(c.amount) || 0)}`).join('<br>')
-      : 'No charges';
-    document.getElementById('charges-summary').innerHTML = `<h3>Charges</h3>${chargesSummary}`;
-
-    const paymentsSummary = data.payments.length > 0
-      ? data.payments.map(p => `${p.date} - ${p.type || 'N/A'} - ${formatCurrency(parseFloat(p.amount) || 0)}`).join('<br>')
-      : 'No payments';
-    document.getElementById('payments-summary').innerHTML = `<h3>Payments</h3>${paymentsSummary}`;
-
-    t.sizeTo(document.body);
-  } catch (err) {
-    console.error('Error rendering billing data:', err);
-  }
-}
-
-t.initialize({
+TrelloPowerUp.initialize({
   'card-back-section': function(t, opts) {
     return {
       title: 'Billing Information',
@@ -58,7 +20,7 @@ t.initialize({
         text: 'Add Charge',
         callback: function(t) {
           return t.modal({
-            url: './modal.html?type=charge',
+            url: t.signUrl('./modal.html?type=charge'),
             title: 'Add Charge',
             height: 320,
             fullscreen: false
@@ -70,7 +32,7 @@ t.initialize({
         text: 'Add Payment',
         callback: function(t) {
           return t.modal({
-            url: './modal.html?type=payment',
+            url: t.signUrl('./modal.html?type=payment'),
             title: 'Add Payment',
             height: 320,
             fullscreen: false
@@ -82,10 +44,10 @@ t.initialize({
 
   'card-badges': async function(t, options) {
     const data = await t.get('card', 'shared', 'billingData') || { charges: [], payments: [] };
-    const balance = calculateBalance(data);
-
+    const balance = (data.charges.reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0)) -
+                    (data.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0));
     return [{
-      text: `Balance: ${formatCurrency(balance)}`,
+      text: `Balance: $${balance.toFixed(2)}`,
       color: balance > 0 ? 'red' : 'green',
       refresh: 10
     }];
@@ -97,7 +59,7 @@ t.initialize({
       text: 'Billing Summary',
       callback: function(t) {
         return t.modal({
-          url: './board-summary.html',
+          url: t.signUrl('./board-summary.html'),
           title: 'Billing Summary',
           height: 400,
           fullscreen: false
@@ -105,13 +67,4 @@ t.initialize({
       }
     }];
   }
-});
-
-t.render(() => {
-  render();
-  t.on('modal:close', async (e) => {
-    if (e && e.refresh) {
-      await render();
-    }
-  });
 });
