@@ -1,3 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Minimal Trello Power-Up Iframe</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+</head>
+<body>
+  <h1>Trello Power-Up Iframe</h1>
+  <p>If you see this, iframe loaded successfully.</p>
+
+  <script>
+    const t = TrelloPowerUp.iframe();
+
+    // Resize the iframe to fit content
+    t.sizeTo(document.body);
+
+    // Optional: notify Trello this iframe is ready
+    t.render(() => {
+      // nothing to update here for now
+    });
+  </script>
+</body>
+</html>
 const t = TrelloPowerUp.iframe();
 
 async function loadBillingData() {
