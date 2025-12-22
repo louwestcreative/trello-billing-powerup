@@ -2,13 +2,14 @@
   "name": "Billing Power-Up",
   "details": "Simple billing tracker Power-Up",
   "icon": {
-    "url": "https://louwestcreative.github.io/trello-billing-powerup/icon.png"
+    "url": "https://louwestcreative.github.io/trello-billing-powerup/coin.png"
   },
   "author": "Lou West Creative",
   "capabilities": [
     "card-back-section",
     "card-buttons",
-    "card-badges"
+    "card-badges",
+    "board-buttons"
   ],
   "connectors": {
     "iframe": {
