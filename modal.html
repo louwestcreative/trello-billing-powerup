@@ -1,34 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Add Billing Entry</title>
+  <meta charset="utf-8">
+  <title>Billing Details</title>
+  <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
+  <link rel="stylesheet" href="./style.css">
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <script src="./modal.js" defer></script>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 15px; }
-    label { display: block; margin: 10px 0 5px; }
-    input[type="text"], input[type="date"], input[type="number"] {
-      width: 100%; padding: 8px; box-sizing: border-box;
-    }
-    button { margin-top: 15px; padding: 10px 15px; }
-    #status { margin-top: 10px; color: red; }
-  </style>
 </head>
 <body>
-  <h3 id="modal-title">Add Entry</h3>
-  <form id="billing-form">
-    <label for="date">Date:</label>
-    <input type="date" id="date" required />
-
-    <label for="type">Type:</label>
-    <input type="text" id="type" placeholder="e.g. Consultation" required />
-
-    <label for="amount">Amount:</label>
-    <input type="number" step="0.01" id="amount" required />
-
-    <button type="submit">Save</button>
-  </form>
-  <div id="status"></div>
+  <div class="container">
+    <div class="section">
+      <h3>Add Charge</h3>
+      <select id="chargeType" class="input">
+        <option value="Retainer">Retainer</option>
+        <option value="Added Fee">Added Fee</option>
+        <option value="Testimony">Testimony</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="chargeDescription" class="input" placeholder="Description (optional)">
+      <input type="number" id="chargeAmount" class="input" placeholder="Amount" step="0.01">
+      <button id="addChargeBtn" class="button">Add Charge</button>
+    </div>
+    
+    <div class="section">
+      <h3>Add Payment</h3>
+      <input type="date" id="paymentDate" class="input">
+      <input type="number" id="paymentAmount" class="input" placeholder="Amount" step="0.01">
+      <input type="text" id="paymentNote" class="input" placeholder="Note (optional)">
+      <button id="addPaymentBtn" class="button">Add Payment</button>
+    </div>
+    
+    <div class="section">
+      <h3>Transaction History</h3>
+      <div id="transactionList"></div>
+    </div>
+    
+    <div class="section summary">
+      <div class="summary-row">
+        <span>Total Charges:</span>
+        <span id="totalCharges" class="amount-red">$0.00</span>
+      </div>
+      <div class="summary-row">
+        <span>Total Payments:</span>
+        <span id="totalPayments" class="amount-green">$0.00</span>
+      </div>
+      <div class="summary-row total">
+        <span>Balance Due:</span>
+        <span id="balance">$0.00</span>
+      </div>
+    </div>
+  </div>
+  
+  <script src="./modal.js"></script>
 </body>
 </html>
