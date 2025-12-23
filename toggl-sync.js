@@ -1,177 +1,215 @@
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  margin: 0;
-  padding: 12px;
-  background: #fff;
-  font-size: 14px;
+/* global TrelloPowerUp */
+
+const t = TrelloPowerUp.iframe();
+const TOGGL_API_BASE = 'https://api.track.toggl.com/api/v9';
+
+function formatHours(hours) {
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
 }
 
-.container {
-  max-width: 100%;
+function formatCurrency(amount) {
+  return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-.section {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e0e0e0;
+async function loadSettings() {
+  const apiToken = await t.get('board', 'private', 'togglApiToken');
+  
+  if (apiToken) {
+    document.getElementById('setupSection').style.display = 'none';
+    document.getElementById('syncSection').style.display = 'block';
+    document.getElementById('togglApiToken').value = apiToken;
+  }
 }
 
-.section:last-child {
-  border-bottom: none;
+// Save API token
+document.getElementById('saveTokenBtn').addEventListener('click', async function() {
+  const token = document.getElementById('togglApiToken').value.trim();
+  
+  if (!token) {
+    alert('Please enter your Toggl API token');
+    return;
+  }
+  
+  // Test the token
+  try {
+    const response = await fetch(`${TOGGL_API_BASE}/me`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${btoa(token + ':api_token')}`
+      }
+    });
+    
+    if (!response.ok) {
+      alert('Invalid API token. Please check and try again.');
+      return;
+    }
+    
+    await t.set('board', 'private', 'togglApiToken', token);
+    document.getElementById('setupSection').style.display = 'none';
+    document.getElementById('syncSection').style.display = 'block';
+    
+    showStatus('Token saved successfully!', 'green');
+  } catch (error) {
+    alert('Error connecting to Toggl: ' + error.message);
+  }
+});
+
+// Sync button
+document.getElementById('syncBtn').addEventListener('click', async function() {
+  const apiToken = await t.get('board', 'private', 'togglApiToken');
+  const dateRange = parseInt(document.getElementById('dateRange').value);
+  
+  if (!apiToken) {
+    alert('Please set up your Toggl API token first');
+    return;
+  }
+  
+  showStatus('Syncing...', 'blue');
+  
+  try {
+    const card = await t.card('name', 'labels');
+    const cardName = card.name;
+    
+    // Get time entries
+    const startDate = new Date(Date.now() - dateRange * 24 * 60 * 60 * 1000).toISOString();
+    const endDate = new Date().toISOString();
+    
+    const response = await fetch(
+      `${TOGGL_API_BASE}/me/time_entries?start_date=${startDate}&end_date=${endDate}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${btoa(apiToken + ':api_token')}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch time entries');
+    }
+    
+    const entries = await response.json();
+    
+    // Match entries to this card by name
+    const cleanCardName = cardName.toLowerCase().trim();
+    const matchedEntries = entries.filter(entry => {
+      const description = (entry.description || '').toLowerCase();
+      return description.includes(cleanCardName);
+    });
+    
+    // Calculate total hours
+    let totalSeconds = 0;
+    matchedEntries.forEach(entry => {
+      if (entry.duration > 0) {
+        totalSeconds += entry.duration;
+      }
+    });
+    
+    const totalHours = totalSeconds / 3600;
+    
+    // Save to card
+    await t.set('card', 'shared', 'togglHours', totalHours);
+    await t.set('card', 'shared', 'lastTogglSync', new Date().toISOString());
+    
+    // Get hourly rate
+    const customRate = await t.get('card', 'shared', 'hourlyRate');
+    let hourlyRate = customRate || 100;
+    
+    // Check labels for default rate
+    if (!customRate) {
+      const defaultRates = {
+        'Pierce GAL': 125,
+        'Pierce MG GAL': 125,
+        'Kitsap GAL': 200,
+        'Kitsap MG GAL': 200,
+        'Pierce CV': 200,
+        'Kitsap CV': 75
+      };
+      
+      for (const label of card.labels) {
+        if (defaultRates[label.name]) {
+          hourlyRate = defaultRates[label.name];
+          break;
+        }
+      }
+    }
+    
+    // Display results
+    document.getElementById('totalHours').textContent = formatHours(totalHours);
+    document.getElementById('hourlyRate').textContent = formatCurrency(hourlyRate);
+    document.getElementById('timeValue').textContent = formatCurrency(totalHours * hourlyRate);
+    document.getElementById('hoursDisplay').style.display = 'block';
+    
+    if (customRate) {
+      document.getElementById('customRate').value = customRate;
+    }
+    
+    // Display matched entries
+    displayMatchedEntries(matchedEntries);
+    
+    showStatus(`Synced ${matchedEntries.length} entries (${formatHours(totalHours)})`, 'green');
+    
+  } catch (error) {
+    showStatus('Error: ' + error.message, 'red');
+  }
+});
+
+// Save custom rate
+document.getElementById('saveRateBtn').addEventListener('click', async function() {
+  const rate = parseFloat(document.getElementById('customRate').value);
+  
+  if (!rate || rate <= 0) {
+    alert('Please enter a valid hourly rate');
+    return;
+  }
+  
+  await t.set('card', 'shared', 'hourlyRate', rate);
+  
+  const togglHours = await t.get('card', 'shared', 'togglHours', 0);
+  document.getElementById('hourlyRate').textContent = formatCurrency(rate);
+  document.getElementById('timeValue').textContent = formatCurrency(togglHours * rate);
+  
+  showStatus('Hourly rate updated!', 'green');
+});
+
+function showStatus(message, color) {
+  const statusDiv = document.getElementById('syncStatus');
+  statusDiv.innerHTML = `<div style="padding: 8px; background: ${color === 'green' ? '#d4edda' : color === 'red' ? '#f8d7da' : '#d1ecf1'}; color: ${color === 'green' ? '#155724' : color === 'red' ? '#721c24' : '#0c5460'}; border-radius: 3px; font-size: 12px;">${message}</div>`;
 }
 
-h3 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #172b4d;
+function displayMatchedEntries(entries) {
+  const container = document.getElementById('matchedEntries');
+  
+  if (entries.length === 0) {
+    container.innerHTML = '<p class="no-data">No matching time entries found. Make sure your Toggl entry descriptions include the card name.</p>';
+    return;
+  }
+  
+  let html = '<h4 style="font-size: 14px; margin: 12px 0 8px 0;">Matched Time Entries:</h4>';
+  html += '<div style="max-height: 200px; overflow-y: auto;">';
+  
+  entries.forEach(entry => {
+    const hours = entry.duration / 3600;
+    const date = new Date(entry.start).toLocaleDateString();
+    html += `
+      <div style="padding: 8px; margin-bottom: 4px; background: #f4f5f7; border-radius: 3px; font-size: 12px;">
+        <div style="display: flex; justify-content: space-between;">
+          <span style="font-weight: 600;">${entry.description || 'No description'}</span>
+          <span style="color: #0079bf; font-weight: 600;">${formatHours(hours)}</span>
+        </div>
+        <div style="color: #5e6c84; font-size: 11px;">${date}</div>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
 }
 
-.input {
-  width: 100%;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  border: 1px solid #dfe1e6;
-  border-radius: 3px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.input:focus {
-  outline: none;
-  border-color: #0079bf;
-  box-shadow: 0 0 0 1px #0079bf;
-}
-
-.button {
-  width: 100%;
-  padding: 8px 12px;
-  background: #0079bf;
-  color: white;
-  border: none;
-  border-radius: 3px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.button:hover {
-  background: #026aa7;
-}
-
-.button:active {
-  background: #055a8c;
-}
-
-.transaction-item {
-  padding: 12px 12px 40px 12px;
-  margin-bottom: 8px;
-  background: #f4f5f7;
-  border-radius: 3px;
-  position: relative;
-}
-
-.transaction-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.transaction-type {
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.transaction-type.charge {
-  color: #c9372c;
-}
-
-.transaction-type.payment {
-  color: #61bd4f;
-}
-
-.transaction-details {
-  font-size: 12px;
-  color: #5e6c84;
-}
-
-.delete-btn {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  padding: 4px 8px;
-  font-size: 11px;
-  background: #fff;
-  border: 1px solid #dfe1e6;
-  border-radius: 3px;
-  cursor: pointer;
-  color: #5e6c84;
-}
-
-.delete-btn:hover {
-  background: #f4f5f7;
-  color: #172b4d;
-}
-
-.amount-red {
-  color: #c9372c;
-  font-weight: 600;
-}
-
-.amount-green {
-  color: #61bd4f;
-  font-weight: 600;
-}
-
-.summary {
-  background: #f9fafc;
-  padding: 12px;
-  border-radius: 3px;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-size: 14px;
-}
-
-.summary-row.total {
-  border-top: 2px solid #dfe1e6;
-  margin-top: 8px;
-  padding-top: 12px;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.no-data {
-  text-align: center;
-  color: #5e6c84;
-  padding: 20px;
-  font-style: italic;
-}
-
-#transactionList {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-#transactionList::-webkit-scrollbar {
-  width: 8px;
-}
-
-#transactionList::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-#transactionList::-webkit-scrollbar-thumb {
-  background: #c1c7d0;
-  border-radius: 4px;
-}
-
-#transactionList::-webkit-scrollbar-thumb:hover {
-  background: #a5adba;
-}
+// Initial load
+loadSettings();
+t.sizeTo('body').done();
