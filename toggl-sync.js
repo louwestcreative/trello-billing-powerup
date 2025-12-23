@@ -1,7 +1,70 @@
 /* global TrelloPowerUp */
 
 const t = TrelloPowerUp.iframe();
+
+// ===== CORS PROXY CONFIGURATION =====
+// Using AllOrigins as a free CORS proxy
+// For production, consider setting up your own backend proxy
+const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 const TOGGL_API_BASE = 'https://api.track.toggl.com/api/v9';
+
+// Helper function to call Toggl API through proxy
+async function callTogglAPI(apiToken, endpoint) {
+  const togglUrl = `${TOGGL_API_BASE}${endpoint}`;
+  const authHeader = btoa(`${apiToken}:api_token`);
+  
+  try {
+    // Try direct call first (in case CORS is resolved or user has extension)
+    try {
+      const directResponse = await fetch(togglUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${authHeader}`
+        }
+      });
+      
+      if (directResponse.ok) {
+        console.log('✓ Direct Toggl API call succeeded');
+        return await directResponse.json();
+      }
+    } catch (directError) {
+      console.log('Direct call blocked by CORS, using proxy...');
+    }
+    
+    // Use proxy as fallback
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(togglUrl)}`;
+    
+    const response = await fetch(proxyUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${authHeader}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Toggl API error: ${response.status} - ${errorText}`);
+    }
+    
+    const text = await response.text();
+    
+    // Try to parse as JSON
+    try {
+      return JSON.parse(text);
+    } catch (parseError) {
+      // If it's wrapped by AllOrigins, try to extract
+      if (text.includes('"contents"')) {
+        const wrapped = JSON.parse(text);
+        return JSON.parse(wrapped.contents);
+      }
+      throw new Error('Failed to parse Toggl API response');
+    }
+    
+  } catch (error) {
+    console.error('Toggl API call failed:', error);
+    throw error;
+  }
+}
 
 function formatHours(hours) {
   const h = Math.floor(hours);
@@ -34,19 +97,14 @@ document.getElementById('saveTokenBtn').addEventListener('click', async function
     return;
   }
   
-  // Test the token
+  // Test the token using our proxy helper
   try {
-    const response = await fetch(`${TOGGL_API_BASE}/me`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${btoa(token + ':api_token')}`
-      }
-    });
+    showStatus('Testing connection...', 'blue');
     
-    if (!response.ok) {
-      alert('Invalid API token. Please check and try again.');
-      return;
-    }
+    // FIXED: Use callTogglAPI instead of direct fetch
+    const userData = await callTogglAPI(token, '/me');
+    
+    console.log('Connected to Toggl as:', userData);
     
     await t.set('board', 'private', 'togglApiToken', token);
     document.getElementById('setupSection').style.display = 'none';
@@ -54,6 +112,8 @@ document.getElementById('saveTokenBtn').addEventListener('click', async function
     
     showStatus('Token saved successfully!', 'green');
   } catch (error) {
+    console.error('Connection error:', error);
+    showStatus('Error: ' + error.message, 'red');
     alert('Error connecting to Toggl: ' + error.message);
   }
 });
@@ -78,21 +138,13 @@ document.getElementById('syncBtn').addEventListener('click', async function() {
     const startDate = new Date(Date.now() - dateRange * 24 * 60 * 60 * 1000).toISOString();
     const endDate = new Date().toISOString();
     
-    const response = await fetch(
-      `${TOGGL_API_BASE}/me/time_entries?start_date=${startDate}&end_date=${endDate}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(apiToken + ':api_token')}`
-        }
-      }
+    // FIXED: Use callTogglAPI instead of direct fetch
+    const entries = await callTogglAPI(
+      apiToken, 
+      `/me/time_entries?start_date=${startDate}&end_date=${endDate}`
     );
     
-    if (!response.ok) {
-      throw new Error('Failed to fetch time entries');
-    }
-    
-    const entries = await response.json();
+    console.log(`Fetched ${entries.length} time entries from Toggl`);
     
     // Match entries to this card by name
     const cleanCardName = cardName.toLowerCase().trim();
@@ -100,6 +152,8 @@ document.getElementById('syncBtn').addEventListener('click', async function() {
       const description = (entry.description || '').toLowerCase();
       return description.includes(cleanCardName);
     });
+    
+    console.log(`Found ${matchedEntries.length} entries matching "${cardName}"`);
     
     // Calculate total hours
     let totalSeconds = 0;
@@ -154,6 +208,7 @@ document.getElementById('syncBtn').addEventListener('click', async function() {
     showStatus(`Synced ${matchedEntries.length} entries (${formatHours(totalHours)})`, 'green');
     
   } catch (error) {
+    console.error('Sync error:', error);
     showStatus('Error: ' + error.message, 'red');
   }
 });
