@@ -1,17 +1,16 @@
 {
-  "id": "692e5a8a765c433f0b7f4a7f",
-  "name": "Billing Power-Up",
-  "description": "Manage billing information with charges, payments, and balance tracking.",
+  "name": "Billing Tracker",
+  "details": "Track charges and payments for GAL and CV cases with automatic label-based charging",
+  "icon": {
+    "url": "https://louwestcreative.github.io/trello-billing-powerup/coin.png"
+  },
   "author": "Lou West Creative",
-  "version": "1.0",
-  "icon": "https://louwestcreative.github.io/trello-billing-powerup/coin.png",
   "capabilities": [
-    "card-back-section",
-    "card-buttons",
     "card-badges",
-    "board-buttons"
+    "card-buttons",
+    "card-detail-badges",
+    "show-settings"
   ],
-  "permissions": ["read", "write"],
-  "url": "https://louwestcreative.github.io/trello-billing-powerup/client.js",
-  "iframe": "https://louwestcreative.github.io/trello-billing-powerup/index.html"
+  "connectorUrl": "https://louwestcreative.github.io/trello-billing-powerup/index.html",
+  "tags": ["billing", "finance", "tracking"]
 }
