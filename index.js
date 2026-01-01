@@ -1,243 +1,285 @@
 /* global TrelloPowerUp */
 
-const ICON_URL = 'https://louwestcreative.github.io/trello-billing-powerup/coin.png';
-const GRAY_ICON = 'https://cdn-icons-png.flaticon.com/512/565/565422.png';
-const BLACK_ICON = 'https://cdn-icons-png.flaticon.com/512/10024/10024082.png';
-const CLOCK_ICON = 'https://cdn-icons-png.flaticon.com/512/2088/2088617.png';
+// Hourly rates by label
+const HOURLY_RATES = {
+  'Kitsap GAL': 200,
+  'Pierce GAL': 125,
+  'Kitsap MG GAL': 200,
+  'Pierce CV': 126,
+  'Kitsap CV': 75,
+  'Pierce MG GAL': 125
+};
 
-// Label-based auto-charge configuration
-const LABEL_CHARGES = {
-  'Pierce GAL': 1875,
-  'Pierce MG GAL': 1875,
+// Auto-charge amounts for GAL labels
+const AUTO_CHARGES = {
+  'Pierce GAL': 2000,
+  'Pierce MG GAL': 2000,
   'Kitsap GAL': 4000,
   'Kitsap MG GAL': 4000
 };
 
-// Default hourly rates by case type
-const HOURLY_RATES = {
-  'Pierce GAL': 125,
-  'Pierce MG GAL': 125,
-  'Kitsap GAL': 200,
-  'Kitsap MG GAL': 200,
-  'Pierce CV': 200,
-  'Kitsap CV': 75
-};
+// Toggl API configuration
+const TOGGL_API_BASE = 'https://api.track.toggl.com/api/v9';
 
-// Helper functions
-function formatCurrency(amount) {
-  return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+var GRAY_ICON = './coin.png';
 
-function formatDate(date) {
-  return new Date(date).toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+// Helper function to make Toggl API calls
+async function togglRequest(t, endpoint, options = {}) {
+  const apiKey = await t.get('board', 'shared', 'togglApiKey');
+  
+  if (!apiKey) {
+    throw new Error('Toggl API key not configured');
+  }
+
+  const auth = btoa(`${apiKey}:api_token`);
+  
+  const response = await fetch(`${TOGGL_API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      'Authorization': `Basic ${auth}`,
+      'Content-Type': 'application/json',
+      ...options.headers
+    }
   });
-}
 
-function formatHours(hours) {
-  const h = Math.floor(hours);
-  const m = Math.round((hours - h) * 60);
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
-  return `${h}h ${m}m`;
-}
-
-async function getCardData(t) {
-  const charges = await t.get('card', 'shared', 'charges', []);
-  const payments = await t.get('card', 'shared', 'payments', []);
-  const togglHours = await t.get('card', 'shared', 'togglHours', 0);
-  const lastTogglSync = await t.get('card', 'shared', 'lastTogglSync', null);
-  return { charges, payments, togglHours, lastTogglSync };
-}
-
-async function calculateBalance(t) {
-  const { charges, payments } = await getCardData(t);
-  const totalCharges = charges.reduce((sum, c) => sum + c.amount, 0);
-  const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
-  return totalCharges - totalPayments;
-}
-
-async function autoChargeForLabels(t) {
-  const card = await t.card('labels');
-  const charges = await t.get('card', 'shared', 'charges', []);
-  
-  // Check which labels exist and if they've already been charged
-  for (const label of card.labels) {
-    const chargeAmount = LABEL_CHARGES[label.name];
-    if (chargeAmount) {
-      // Check if this label has already been charged
-      const alreadyCharged = charges.some(c => 
-        c.type === 'Auto-Charge' && c.description === label.name
-      );
-      
-      if (!alreadyCharged) {
-        // Add the charge
-        charges.push({
-          date: new Date().toISOString(),
-          type: 'Auto-Charge',
-          description: label.name,
-          amount: chargeAmount
-        });
-      }
-    }
+  if (!response.ok) {
+    throw new Error(`Toggl API error: ${response.status}`);
   }
-  
-  await t.set('card', 'shared', 'charges', charges);
+
+  return response.json();
 }
 
-async function getHourlyRate(t) {
-  const customRate = await t.get('card', 'shared', 'hourlyRate');
-  if (customRate) return customRate;
-  
-  const card = await t.card('labels');
-  for (const label of card.labels) {
-    if (HOURLY_RATES[label.name]) {
-      return HOURLY_RATES[label.name];
-    }
-  }
-  return 100; // Default rate
+// Get or create Toggl workspace
+async function getTogglWorkspace(t) {
+  const workspaces = await togglRequest(t, '/me/workspaces');
+  return workspaces[0]; // Use first workspace
 }
 
-// Power-Up capabilities
-TrelloPowerUp.initialize({
+// Get or create Toggl client based on label
+async function getOrCreateTogglClient(t, labelName) {
+  const workspace = await getTogglWorkspace(t);
+  const clients = await togglRequest(t, `/workspaces/${workspace.id}/clients`);
   
-  // Card badges - show balance and hours on card front
-  'card-badges': async function(t) {
-    await autoChargeForLabels(t);
-    const balance = await calculateBalance(t);
-    const { togglHours } = await getCardData(t);
-    
-    const badges = [];
-    
-    // Balance badge
-    let color = 'blue';
-    let icon = GRAY_ICON;
-    
-    if (balance > 0) {
-      color = 'red';
-      icon = BLACK_ICON;
-    } else if (balance < 0) {
-      color = 'green';
-      icon = ICON_URL;
-    }
-    
-    badges.push({
-      text: formatCurrency(Math.abs(balance)),
-      color: color,
-      icon: icon
+  // Check if client exists
+  let client = clients.find(c => c.name === labelName);
+  
+  if (!client) {
+    // Create new client
+    client = await togglRequest(t, `/workspaces/${workspace.id}/clients`, {
+      method: 'POST',
+      body: JSON.stringify({ name: labelName })
     });
-    
-    // Hours badge (if there are tracked hours)
-    if (togglHours > 0) {
-      badges.push({
-        text: formatHours(togglHours),
-        color: 'purple',
-        icon: CLOCK_ICON
-      });
-    }
-    
-    return badges;
-  },
+  }
   
-  // Card buttons - add buttons to card back
-  'card-buttons': function(t) {
+  return client;
+}
+
+// Get or create Toggl project
+async function getOrCreateTogglProject(t, projectName, clientId, hourlyRate) {
+  const workspace = await getTogglWorkspace(t);
+  const projects = await togglRequest(t, `/workspaces/${workspace.id}/projects`);
+  
+  // Check if project exists
+  let project = projects.find(p => p.name === projectName);
+  
+  if (!project) {
+    // Create new project
+    project = await togglRequest(t, `/workspaces/${workspace.id}/projects`, {
+      method: 'POST',
+      body: JSON.stringify({
+        name: projectName,
+        client_id: clientId,
+        rate: hourlyRate,
+        billable: true
+      })
+    });
+  }
+  
+  return project;
+}
+
+// Get time entries for a project
+async function getTogglTimeEntries(t, projectName) {
+  const workspace = await getTogglWorkspace(t);
+  
+  // Get projects to find project ID
+  const projects = await togglRequest(t, `/workspaces/${workspace.id}/projects`);
+  const project = projects.find(p => p.name === projectName);
+  
+  if (!project) {
+    return [];
+  }
+  
+  // Get time entries for the project
+  const endDate = new Date().toISOString().split('T')[0];
+  const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  
+  const entries = await togglRequest(
+    t, 
+    `/me/time_entries?start_date=${startDate}&end_date=${endDate}`
+  );
+  
+  return entries.filter(e => e.project_id === project.id);
+}
+
+// Calculate total hours and billable amount
+function calculateTotals(timeEntries, hourlyRate) {
+  const totalSeconds = timeEntries.reduce((sum, entry) => sum + (entry.duration || 0), 0);
+  const totalHours = totalSeconds / 3600;
+  const billableAmount = totalHours * hourlyRate;
+  
+  return {
+    totalHours: totalHours.toFixed(2),
+    billableAmount: billableAmount.toFixed(2)
+  };
+}
+
+// Get the primary label for hourly rate determination
+function getPrimaryLabel(labels) {
+  const labelOrder = [
+    'Kitsap GAL', 'Pierce GAL', 'Kitsap MG GAL', 
+    'Pierce CV', 'Kitsap CV', 'Pierce MG GAL'
+  ];
+  
+  for (let labelName of labelOrder) {
+    if (labels.some(l => l.name === labelName)) {
+      return labelName;
+    }
+  }
+  
+  return null;
+}
+
+TrelloPowerUp.initialize({
+  'board-buttons': function(t, options) {
     return [{
-      icon: ICON_URL,
-      text: 'Billing Details',
+      icon: GRAY_ICON,
+      text: 'Configure Toggl',
       callback: function(t) {
         return t.popup({
-          title: 'Billing Tracker',
-          url: './modal.html',
-          height: 600
-        });
-      }
-    }, {
-      icon: CLOCK_ICON,
-      text: 'Sync Toggl Hours',
-      callback: async function(t) {
-        return t.popup({
-          title: 'Toggl Time Tracking',
-          url: './toggl-sync.html',
-          height: 400
+          title: 'Toggl Configuration',
+          url: './toggl-config.html',
+          height: 150
         });
       }
     }];
   },
   
-  // Card detail badges - show detailed info on card back
-  'card-detail-badges': async function(t) {
-    await autoChargeForLabels(t);
-    const { charges, payments, togglHours, lastTogglSync } = await getCardData(t);
-    const balance = await calculateBalance(t);
-    const hourlyRate = await getHourlyRate(t);
-    
-    const totalCharges = charges.reduce((sum, c) => sum + c.amount, 0);
-    const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
-    
-    const badges = [{
-      title: 'Total Charges',
-      text: formatCurrency(totalCharges),
-      color: 'red'
-    }, {
-      title: 'Total Payments',
-      text: formatCurrency(totalPayments),
-      color: 'green'
-    }, {
-      title: 'Balance',
-      text: formatCurrency(Math.abs(balance)),
-      color: balance > 0 ? 'red' : (balance < 0 ? 'green' : 'blue')
-    }];
-    
-    // Add time tracking badges if hours exist
-    if (togglHours > 0) {
-      badges.push({
-        title: 'Tracked Hours',
-        text: formatHours(togglHours),
-        color: 'purple'
+  'card-badges': function(t, options) {
+    return t.card('name')
+      .get('name')
+      .then(function(cardName) {
+        return t.get('card', 'shared', 'charges', []);
+      })
+      .then(function(charges) {
+        return t.get('card', 'shared', 'payments', []);
+      })
+      .then(function(payments) {
+        var totalCharged = charges.reduce((sum, c) => sum + c.amount, 0);
+        var totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+        var balance = totalCharged - totalPaid;
+        
+        return [{
+          icon: GRAY_ICON,
+          text: '$' + balance.toFixed(2),
+          color: balance > 0 ? 'red' : 'green'
+        }];
       });
-      
-      badges.push({
-        title: 'Time Value',
-        text: formatCurrency(togglHours * hourlyRate),
-        color: 'orange'
-      });
-    }
-    
-    if (lastTogglSync) {
-      badges.push({
-        title: 'Last Sync',
-        text: formatDate(lastTogglSync),
-        color: 'blue'
-      });
-    }
-    
-    return badges;
   },
   
-  // Board buttons - add analytics dashboard
-  'board-buttons': function(t) {
+  'card-buttons': function(t, options) {
     return [{
-      icon: 'https://cdn-icons-png.flaticon.com/512/2920/2920277.png',
-      text: 'Case Analytics',
+      icon: GRAY_ICON,
+      text: 'Billing & Hours',
       callback: function(t) {
         return t.modal({
-          title: 'Case Analytics & Summary',
-          url: './analytics.html',
-          fullscreen: true
+          url: './modal.html',
+          fullscreen: false,
+          title: 'Billing & Time Tracking'
         });
+      }
+    }, {
+      icon: GRAY_ICON,
+      text: 'Sync Toggl Hours',
+      callback: async function(t) {
+        try {
+          const card = await t.card('name', 'labels');
+          const projectName = card.name;
+          const labels = card.labels;
+          const primaryLabel = getPrimaryLabel(labels);
+          
+          if (!primaryLabel) {
+            return t.alert({
+              message: 'No billing label found on card',
+              duration: 3
+            });
+          }
+          
+          const hourlyRate = HOURLY_RATES[primaryLabel];
+          const timeEntries = await getTogglTimeEntries(t, projectName);
+          const totals = calculateTotals(timeEntries, hourlyRate);
+          
+          return t.alert({
+            message: `Synced: ${totals.totalHours} hours = $${totals.billableAmount}`,
+            duration: 5
+          });
+        } catch (error) {
+          return t.alert({
+            message: 'Error syncing Toggl: ' + error.message,
+            duration: 5
+          });
+        }
       }
     }];
   },
   
-  // Settings
-  'show-settings': function(t) {
-    return t.popup({
-      title: 'Billing Tracker Settings',
-      url: './settings.html',
-      height: 300
-    });
-  }
+  'card-back-section': function(t, options) {
+    return {
+      title: 'Time Tracking',
+      icon: GRAY_ICON,
+      content: {
+        type: 'iframe',
+        url: t.signUrl('./toggl-section.html'),
+        height: 300
+      }
+    };
+  },
   
+  // Auto-create Toggl project when card is created
+  'on-enable': function(t) {
+    return t.modal({
+      url: './auth.html',
+      fullscreen: false,
+      title: 'Setup Billing Power-Up'
+    });
+  },
+  
+  'card-detail-badge': function(t, options) {
+    return t.card('labels', 'name')
+      .then(async function(card) {
+        const primaryLabel = getPrimaryLabel(card.labels);
+        
+        if (!primaryLabel) {
+          return [];
+        }
+        
+        const hourlyRate = HOURLY_RATES[primaryLabel];
+        
+        try {
+          const timeEntries = await getTogglTimeEntries(t, card.name);
+          const totals = calculateTotals(timeEntries, hourlyRate);
+          
+          return [{
+            text: `${totals.totalHours}h @ $${hourlyRate}/h`,
+            icon: GRAY_ICON,
+            color: 'blue'
+          }];
+        } catch (error) {
+          return [];
+        }
+      });
+  }
+}, {
+  appKey: 'YOUR_APP_KEY',
+  appName: 'Billing & Time Tracking'
 });
