@@ -1,303 +1,203 @@
-# Trello Billing & Time Tracking Power-Up
-
-A comprehensive Trello Power-Up for tracking billing, payments, and time with Toggl integration, plus board-wide analytics dashboard.
+# Trello Billing Power-Up with Toggl Integration
 
 ## 🎯 Features
 
-### 💰 Billing Management
-- **Auto-Charge Based on Labels**: Automatically adds charges when specific labels are applied
-  - Pierce GAL / Pierce MG GAL: $1,875
-  - Kitsap GAL / Kitsap MG GAL: $4,000
-- **Manual Charges**: Add retainer fees, added fees, testimony charges, and custom charges
-- **Payment Tracking**: Record payments with dates and notes
-- **Transaction History**: View complete history with delete capability
-- **Balance Display**: Color-coded badges on cards (red=owed, green=credit, blue=paid)
+### Billing Features
+- **Auto-charge** for GAL labels when applied to cards
+  - Pierce GAL: $2,000
+  - Pierce MG GAL: $2,000
+  - Kitsap GAL: $4,000
+  - Kitsap MG GAL: $4,000
+- **Manual charges**: Retainer, added fees, testimony, hours, other
+- **Payment tracking** with date and method
+- **Balance badge** on card front showing current balance
+- **Transaction log** of all charges and payments
 
-### ⏱️ Time Tracking (Toggl Integration)
-- **Automatic Time Sync**: Connect Toggl and sync hours to specific cards
-- **Smart Matching**: Matches Toggl entries to cards by name in description
-- **Hourly Rates**: Set custom rates per card or use label-based defaults
-  - Pierce GAL: $125/hr
-  - Pierce MG GAL: $125/hr
-  - Kitsap GAL: $200/hr
-  - Kitsap MG GAL: $200/hr
-  - Pierce CV: $200/hr
-  - Kitsap CV: $75/hr
-- **Time Value Calculation**: Automatically calculates billable value (hours × rate)
-- **Time Badges**: Display tracked hours on card front and back
+### Time Tracking Features
+- **Toggl integration** with hourly rate mapping
+  - Kitsap GAL: $200/hour
+  - Pierce GAL: $125/hour
+  - Kitsap MG GAL: $200/hour
+  - Pierce CV: $126/hour
+  - Kitsap CV: $75/hour
+  - Pierce MG GAL: $125/hour
+- **Auto-create Toggl projects** from Trello cards
+- **Sync hours** from Toggl to calculate billable amounts
+- **Time entry display** showing recent tracked time
+- **Add hours as charges** directly from Toggl data
+- **Real-time hour tracking** displayed on card back
 
-### 📊 Analytics Dashboard
-- **Board-Wide Summary**: See totals across all cases
-  - Total cases, revenue, payments, outstanding balance
-  - Total hours tracked and time value
-- **Filter by Label**: View analytics for specific case types
-- **Filter by Status**: Active cases vs. paid cases
-- **Label Breakdown**: Stats grouped by case type
-- **Detailed Case Table**: Sortable table with all case details
-- **CSV Export**: Export filtered data for external analysis
+## 🚀 Setup Instructions
 
-## 📦 Installation
+### 1. Get Your Toggl API Key
 
-### Step 1: Deploy to GitHub Pages
+1. Log in to [Toggl Track](https://track.toggl.com)
+2. Go to **Profile Settings** (click your avatar in top-right)
+3. Scroll down to **API Token** section
+4. Copy your API token
 
-1. **Update your repository** with all the new files:
-   - index.html, index.js
-   - manifest.json
-   - modal.html, modal.js
-   - toggl-sync.html, toggl-sync.js
-   - analytics.html, analytics.js
-   - settings.html
-   - style.css
-   - coin.png (your existing icon)
+### 2. Install the Power-Up
 
-2. **Delete old files** (if they exist):
-   - auth.html
-   - board-summary.js
-   - client.html
-   - client.js
+1. Host all files on your web server or GitHub Pages
+2. Update URLs in `manifest.json` to point to your hosted location
+3. Go to [Trello Power-Up Admin](https://trello.com/power-ups/admin)
+4. Create a new Power-Up or edit your existing one
+5. Set the manifest URL to your hosted `manifest.json`
+6. Enable the Power-Up on your board
 
-3. **Enable GitHub Pages**:
-   - Go to repository Settings → Pages
-   - Source: Deploy from branch `main`
-   - Folder: `/ (root)`
-   - Click Save
-
-4. **Wait 1-2 minutes** for deployment
-
-5. **Verify it's working**:
-   - Visit: `https://louwestcreative.github.io/trello-billing-powerup/`
-   - You should see a blank page (this is correct!)
-   - Visit: `https://louwestcreative.github.io/trello-billing-powerup/manifest.json`
-   - You should see JSON content
-
-### Step 2: Create Power-Up in Trello
-
-1. Go to [Trello Power-Ups Admin](https://trello.com/power-ups/admin)
-2. Click **"Create new Power-Up"**
-3. Fill in:
-   - **Name**: Billing & Time Tracker
-   - **Workspace**: Select your workspace
-   - **Iframe connector URL**: `https://louwestcreative.github.io/trello-billing-powerup/index.html`
-   - **Support email**: Your email
-4. Click **Save**
-
-### Step 3: Enable on Board
+### 3. Configure Toggl in Your Board
 
 1. Open your Trello board
-2. Click **Show Menu** (top right) → **Power-Ups**
-3. Scroll to **Custom** section
-4. Find **"Billing & Time Tracker"**
-5. Click **Add**
+2. Click **"Configure Toggl"** button in the board menu (top-right)
+3. Paste your Toggl API key
+4. Click **Save API Key**
 
-## 🚀 Usage Guide
+### 4. Using the Power-Up
 
-### Card-Level Features
+#### Creating a New Case
 
-#### Viewing Billing Info
-- **Front Badge**: Shows current balance (charges - payments)
-- **Back Badges**: Shows detailed breakdown
-- **Billing Details Button**: Click coin icon for full interface
+1. Create a new card with the case name (e.g., "Smith vs. Jones")
+2. Add the appropriate label (e.g., "Pierce GAL")
+3. Open the card
+4. Click **"Billing & Hours"** button
+5. Go to the **Time Tracking** tab
+6. Click **"Create Toggl Project"** to set up time tracking
 
-#### Adding Charges
-1. Click **"Billing Details"** on card back
-2. Select charge type (Retainer, Added Fee, Testimony, Other)
-3. Add description (optional)
-4. Enter amount
-5. Click **"Add Charge"**
+#### Tracking Time
 
-#### Adding Payments
-1. Click **"Billing Details"** on card back
-2. Select payment date
-3. Enter amount
-4. Add note (optional)
-5. Click **"Add Payment"**
+1. In Toggl Track, select the project matching your card name
+2. Track your time as usual
+3. Time entries will automatically sync to your Trello card
 
-#### Auto-Charges from Labels
-When you add these labels, charges are automatically created (once per label):
-- **Pierce GAL** → $1,875
-- **Pierce MG GAL** → $1,875
-- **Kitsap GAL** → $4,000
-- **Kitsap MG GAL** → $4,000
+#### Viewing Time & Billing
 
-### Time Tracking with Toggl
+1. Open the card
+2. The **Time Tracking** section on the card back shows:
+   - Total hours tracked
+   - Hourly rate (based on label)
+   - Total billable amount
+   - Recent time entries
+3. Click **"Billing & Hours"** for detailed view
 
-#### Initial Setup
-1. Click **"Sync Toggl Hours"** button on any card
-2. Enter your Toggl API token
-   - Find at: [Toggl Profile](https://track.toggl.com/profile)
-   - Scroll to "API Token" section
-3. Click **"Save Token"**
+#### Adding Charges from Toggl
 
-#### Syncing Hours
-1. **In Toggl**: Log time with the card name in the description
-   - Example: If card is "Smith v. Jones", include "Smith v. Jones" in your Toggl entry description
-2. **In Trello**: Click **"Sync Toggl Hours"** on the card
-3. Select date range (7 days, 30 days, 90 days, or 1 year)
-4. Click **"Sync Hours from Toggl"**
-5. Matched entries appear with total hours calculated
+1. Open the card
+2. Click **"Billing & Hours"**
+3. Go to **Time Tracking** tab
+4. Click **"Sync Hours from Toggl"** to refresh data
+5. Click **"Add Hours as Charge"** to add time to billing
+6. View the charge in the **Billing** tab
 
-#### Custom Hourly Rates
-1. After syncing, enter custom rate in the field
-2. Click **"Update Rate"**
-3. Time value recalculates automatically
+#### Manual Billing
 
-#### Time Display
-- **Front Badge**: Purple badge shows total hours
-- **Back Badges**: Shows hours and time value
-- **Billing Modal**: Shows hourly rate and total value
+1. Open the card
+2. Click **"Billing & Hours"**
+3. In the **Billing** tab:
+   - Add charges (retainer, fees, testimony, other)
+   - Add payments with date and method
+   - View transaction log
 
-### Board Analytics Dashboard
+#### Summary View
 
-#### Accessing Dashboard
-1. Open your board
-2. Click **"Case Analytics"** button in board menu (top)
-3. Full-screen dashboard opens
+1. Click **"Billing & Hours"**
+2. Go to **Summary** tab to see:
+   - Case name and label
+   - Hourly rate
+   - Total charged
+   - Total paid
+   - Current balance
 
-#### Dashboard Features
+## 📋 Label to Client Mapping
 
-**Summary Stats (Top)**
-- Total Cases
-- Total Revenue (all charges)
-- Total Paid (all payments)
-- Outstanding Balance (money still owed)
-- Total Hours (from Toggl)
-- Time Value (hours × rates)
+The Power-Up automatically maps Trello labels to Toggl clients:
 
-**Filters**
-- **By Label**: View specific case types
-- **By Status**: Active (positive balance) or Paid (zero/negative balance)
+| Trello Label | Toggl Client | Hourly Rate | Auto-Charge |
+|--------------|--------------|-------------|-------------|
+| Kitsap GAL | Kitsap GAL | $200/hour | $4,000 |
+| Pierce GAL | Pierce GAL | $125/hour | $2,000 |
+| Kitsap MG GAL | Kitsap MG GAL | $200/hour | $4,000 |
+| Pierce CV | Pierce CV | $126/hour | - |
+| Kitsap CV | Kitsap CV | $75/hour | - |
+| Pierce MG GAL | Pierce MG GAL | $125/hour | $2,000 |
 
-**Label Breakdown**
-- Cases grouped by label type
-- Shows count, charges, outstanding balance, and hours per label
+## 🔧 Technical Details
 
-**All Cases Table**
-- Complete list of all cases
-- Columns: Name, Label, Charges, Payments, Balance, Hours
-- Sorted by balance (highest first)
-- Color-coded balances
+### Files Included
 
-**Export**
-- Click **"Export to CSV"** to download filtered data
-- Includes all case details for spreadsheet analysis
+- `index.js` - Main Power-Up logic with Toggl integration
+- `modal.html` - Billing & time tracking modal interface
+- `toggl-config.html` - Toggl API key configuration popup
+- `toggl-section.html` - Time tracking section for card back
+- `manifest.json` - Power-Up manifest
+- `style.css` - Styling
 
-## ⚙️ Customization
+### Data Storage
 
-### Changing Auto-Charge Amounts
+- **Board level**: Toggl API key (shared across all cards)
+- **Card level**: Charges, payments (private to each card)
 
-Edit `index.js`, find this section:
+### API Integration
 
-```javascript
-const LABEL_CHARGES = {
-  'Pierce GAL': 1875,
-  'Pierce MG GAL': 1875,
-  'Kitsap GAL': 4000,
-  'Kitsap MG GAL': 4000
-};
-```
+- Uses Toggl Track API v9
+- Authentication via API token (Basic Auth)
+- Automatically creates clients and projects in Toggl
+- Syncs time entries on-demand
 
-Change the amounts as needed.
+## 🎨 Customization
 
-### Changing Default Hourly Rates
+### Changing Hourly Rates
 
-Edit `index.js`, find this section:
+Edit the `HOURLY_RATES` object in `index.js`:
 
 ```javascript
 const HOURLY_RATES = {
+  'Kitsap GAL': 200,      // Change to your rate
   'Pierce GAL': 125,
-  'Pierce MG GAL': 125,
-  'Kitsap GAL': 200,
-  'Kitsap MG GAL': 200,
-  'Pierce CV': 200,
-  'Kitsap CV': 75
+  // ... etc
+};
+```
+
+### Changing Auto-Charges
+
+Edit the `AUTO_CHARGES` object in `index.js`:
+
+```javascript
+const AUTO_CHARGES = {
+  'Pierce GAL': 2000,     // Change amount
+  'Pierce MG GAL': 2000,
+  // ... etc
 };
 ```
 
 ### Adding New Labels
 
-1. Add to `LABEL_CHARGES` (if you want auto-charging)
-2. Add to `HOURLY_RATES` (if you want default rate)
-3. Add to `labelColors` in `analytics.js` for dashboard colors
+1. Add the label in Trello
+2. Add it to `HOURLY_RATES` in `index.js`
+3. Optionally add to `AUTO_CHARGES` if it should auto-charge
 
-## 🔧 Troubleshooting
+## 🐛 Troubleshooting
 
-### Power-Up Not Showing
-1. Verify GitHub Pages is enabled and accessible
-2. Check Power-Up connector URL is correct
-3. Make sure Power-Up is enabled on the specific board
-4. Clear browser cache and refresh
+### "Toggl API key not configured"
+- Click "Configure Toggl" in board menu
+- Enter your API key and save
 
-### Toggl Not Syncing
-1. Verify API token is correct
-2. Check Toggl entry descriptions include the card name exactly
-3. Try a longer date range
-4. Verify you have time entries in Toggl for that period
+### "No billing label found"
+- Add one of the supported labels to your card
+- Supported: Kitsap GAL, Pierce GAL, Kitsap MG GAL, Pierce CV, Kitsap CV, Pierce MG GAL
 
-### Analytics Not Loading
-1. Check browser console (F12) for errors
-2. Verify all cards are accessible
-3. Try clicking "Refresh Data" button
-4. Make sure you have proper permissions on the board
+### "Project not found in Toggl"
+- Open card → Billing & Hours → Time Tracking tab
+- Click "Create Toggl Project"
 
-### Auto-Charges Not Working
-1. Verify label names match exactly (case-sensitive)
-2. Each label only charges once per card
-3. Check browser console for errors
-4. Make sure labels are added after Power-Up is enabled
+### Time entries not showing
+- Make sure you're tracking time in Toggl under the correct project name
+- Project name must exactly match your Trello card name
+- Click "Refresh" in the time tracking section
 
-## 📝 Best Practices
+## 📞 Support
 
-### Naming Convention for Toggl
-Use consistent naming in Toggl descriptions:
-- ✅ "Smith v. Jones - Research" (matches "Smith v. Jones" card)
-- ✅ "Working on Smith v. Jones case" (matches "Smith v. Jones" card)
-- ❌ "Case research" (no card name, won't match)
+For questions or issues, contact Lou West Creative.
 
-### Card Organization
-- Use labels consistently for all cases
-- Name cards clearly (client names, case numbers)
-- Add labels before doing time tracking
-- Keep card names short for easier Toggl matching
+## 📄 License
 
-### Regular Syncing
-- Sync Toggl hours weekly
-- Review analytics dashboard monthly
-- Export CSV for accounting records
-- Update payments promptly
-
-## 🔒 Privacy & Security
-
-- **Toggl API Token**: Stored privately per board (not shared with other users)
-- **Billing Data**: Stored on card level, visible to all board members
-- **No External Servers**: All data stays in Trello and Toggl
-- **No Tracking**: Power-Up doesn't track or store data elsewhere
-
-## 📄 File Structure
-
-```
-trello-billing-powerup/
-├── manifest.json          # Power-Up configuration
-├── index.html             # Main connector
-├── index.js               # Core logic
-├── modal.html             # Billing interface
-├── modal.js               # Billing logic
-├── toggl-sync.html        # Toggl interface
-├── toggl-sync.js          # Toggl integration
-├── analytics.html         # Dashboard interface
-├── analytics.js           # Analytics logic
-├── settings.html          # Settings page
-├── style.css              # Styles
-└── coin.png               # Icon
-```
-
-## 🆘 Support
-
-For issues:
-1. Check browser console (F12) for errors
-2. Verify all files are accessible via GitHub Pages
-3. Check Trello Power-Up admin settings
-4. Contact Lou West Creative
-
-## 📜 License
-
-MIT License - Free to modify and use for your needs!
+© Lou West Creative. All rights reserved.
