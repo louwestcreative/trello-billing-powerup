@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="container">
+    <h3>Toggl API Configuration</h3>
+    <form id="togglForm">
+      <div class="form-group">
+        <label for="apiKey">Toggl API Key:</label>
+        <input type="password" id="apiKey" placeholder="Enter your Toggl API key" required>
+        <small>Find your API key in Toggl: Profile Settings → API Token</small>
+      </div>
+      <button type="submit" class="mod-primary">Save API Key</button>
+    </form>
+  </div>
+
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <script>
+    var t = TrelloPowerUp.iframe();
+    
+    // Load existing API key if present
+    t.get('board', 'shared', 'togglApiKey')
+      .then(function(apiKey) {
+        if (apiKey) {
+          document.getElementById('apiKey').value = apiKey;
+        }
+      });
+    
+    document.getElementById('togglForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      var apiKey = document.getElementById('apiKey').value.trim();
+      
+      if (!apiKey) {
+        alert('Please enter a valid API key');
+        return;
+      }
+      
+      // Save API key to board
+      t.set('board', 'shared', 'togglApiKey', apiKey)
+        .then(function() {
+          t.alert({
+            message: 'Toggl API key saved successfully!',
+            duration: 3
+          });
+          t.closePopup();
+        })
+        .catch(function(error) {
+          alert('Error saving API key: ' + error.message);
+        });
+    });
+  </script>
+</body>
+</html>
