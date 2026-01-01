@@ -1,25 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Privacy Policy - Lou West Creative Billing Power-Up</title>
-<style>
-  body { font-family: Arial, sans-serif; max-width: 700px; margin: 2rem auto; padding: 1rem; line-height: 1.6; }
-  h1 { color: #333; }
-  a { color: #0079bf; text-decoration: none; }
-  a:hover { text-decoration: underline; }
-</style>
+  <meta charset="utf-8">
+  <title>Privacy Policy - Billing & Time Tracking</title>
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    body {
+      background: #f4f5f7;
+    }
+    .privacy-container {
+      max-width: 800px;
+      margin: 20px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 3px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #172b4d;
+      margin-bottom: 10px;
+    }
+    h2 {
+      color: #172b4d;
+      margin-top: 30px;
+      margin-bottom: 15px;
+    }
+    p {
+      line-height: 1.6;
+      color: #5e6c84;
+    }
+    ul {
+      line-height: 1.8;
+      color: #5e6c84;
+    }
+    .updated {
+      color: #999;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-<h1>Privacy Policy</h1>
+  <div class="privacy-container">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last Updated: December 31, 2025</p>
 
-<p>Lou West Creative is committed to protecting your privacy when you use our Trello Billing Power-Up.</p>
+    <h2>Introduction</h2>
+    <p>
+      The Billing & Time Tracking Power-Up ("the Power-Up") is committed to protecting your privacy. 
+      This policy explains how we handle data when you use our Power-Up.
+    </p>
 
-<h2>Information We Collect</h2>
-<p>This Power-Up does not collect or store any personal data outside of Trello’s platform. All billing and payment information is managed through secure third-party services compliant with relevant data protection standards.</p>
+    <h2>Data We Store</h2>
+    <p>The Power-Up stores the following data in Trello:</p>
+    <ul>
+      <li><strong>Billing Data:</strong> Charges, payments, amounts, dates, and descriptions you manually enter</li>
+      <li><strong>Toggl API Key:</strong> Your Toggl API key (stored at board level, encrypted by Trello)</li>
+      <li><strong>Client Names:</strong> Optional client names you assign to cards</li>
+    </ul>
 
-<h2>How We Use Information</h2>
-<p>We do not access or store your personal or billing data directly. Any information required for payment processing is handled solely by trusted third-party payment providers.</p>
+    <h2>Data We Access</h2>
+    <p>The Power-Up accesses:</p>
+    <ul>
+      <li><strong>Trello Data:</strong> Card names, labels, and basic board information</li>
+      <li><strong>Toggl Data:</strong> Time entries, projects, and clients from your Toggl account (when configured)</li>
+    </ul>
 
-<h2>Data Security</h2>
+    <h2>How We Use Your Data</h2>
+    <ul>
+      <li>Display billing information on your Trello cards</li>
+      <li>Calculate balances and totals</li>
+      <li>Integrate with Toggl to show billable hours</li>
+      <li>All processing happens in your browser</li>
+    </ul>
+
+    <h2>Data Storage</h2>
+    <ul>
+      <li>All data is stored within Trello's infrastructure using Trello's storage APIs</li>
+      <li>We do not store any data on external servers</li>
+      <li>Data is only accessible to board members who have the Power-Up enabled</li>
+    </ul>
+
+    <h2>Third-Party Services</h2>
+    <p>
+      The Power-Up integrates with Toggl Track for time tracking. When you configure the Toggl integration:
+    </p>
+    <ul>
+      <li>Your Toggl API key is stored in Trello (not on our servers)</li>
+      <li>Time entries are fetched directly from Toggl's API</li>
+      <li>Please review <a href="https://toggl.com/legal/privacy" target="_blank">Toggl's Privacy Policy</a></li>
+    </ul>
+
+    <h2>Data Security</h2>
+    <ul>
+      <li>All API communications use HTTPS encryption</li>
+      <li>Your Toggl API key is stored securely by Trello</li>
+      <li>No billing data leaves your Trello account</li>
+    </ul>
+
+    <h2>Your Rights</h2>
+    <p>You have the right to:</p>
+    <ul>
+      <li>View all data stored by the Power-Up</li>
+      <li>Delete any billing records manually</li>
+      <li>Remove the Power-Up to delete all associated data</li>
+      <li>Revoke Toggl API access at any time</li>
+    </ul>
+
+    <h2>Data Deletion</h2>
+    <p>
+      To delete all data associated with the Power-Up:
+    </p>
+    <ol>
+      <li>Remove the Power-Up from your board</li>
+      <li>All stored charges, payments, and settings will be deleted</li>
+      <li>Toggl data remains in your Toggl account unchanged</li>
+    </ol>
+
+    <h2>Changes to This Policy</h2>
+    <p>
+      We may update this privacy policy from time to time. Changes will be posted on this page 
+      with an updated "Last Updated" date.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      For questions about this privacy policy or the Power-Up, please contact:<br>
+      <strong>Lou West Creative</strong>
+    </p>
+
+    <p style="margin-top: 40px; font-size: 12px; color: #999;">
+      This Power-Up is not affiliated with or endorsed by Trello, Atlassian, or Toggl.
+    </p>
+  </div>
+</body>
+</html>
