@@ -18,7 +18,7 @@
   - Kitsap GAL: $200/hour
   - Pierce GAL: $125/hour
   - Kitsap MG GAL: $200/hour
-  - Pierce CV: $126/hour
+  - Pierce CV: $125/hour
   - Kitsap CV: $75/hour
   - Pierce MG GAL: $125/hour
 - **Auto-create Toggl projects** from Trello cards
