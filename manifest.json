@@ -1,17 +1,17 @@
 {
   "manifest_version": 1,
-  "id": "your-powerup-id",
+  "id": "louwestcreative-toggl-billing-powerup",
   "apiVersion": 1,
   "name": "Trello Billing Power-Up",
   "description": "Integrate Toggl billing with Trello cards",
-  "author": "Your Name",
+  "author": "Lou West Creative",
   "icon": {
-    "url": "https://your-hosted-url/icon.png"
+    "url": "https://louwestcreative.github.io/trello-billing-powerup/icon.png"
   },
   "capabilities": {
-    "card-detail-badges": "https://your-hosted-url/toggl-section.html",
+    "card-detail-badges": "https://louwestcreative.github.io/trello-billing-powerup/toggl-section.html",
     "board-settings": {
-      "url": "https://your-hosted-url/toggl-config.html",
+      "url": "https://louwestcreative.github.io/trello-billing-powerup/toggl-config.html",
       "height": 300
     }
   },
