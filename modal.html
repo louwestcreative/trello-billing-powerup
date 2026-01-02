@@ -1,584 +1,217 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
+  <link rel="stylesheet" href="./style.css">
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       padding: 20px;
       margin: 0;
+      background: #f4f5f7;
     }
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid #e2e4e6;
-      margin-bottom: 20px;
-    }
-    .tab {
-      padding: 10px 20px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      font-size: 14px;
-      color: #5e6c84;
-      font-weight: 500;
-    }
-    .tab.active {
-      color: #0079bf;
-      border-bottom: 2px solid #0079bf;
-      margin-bottom: -2px;
-    }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
     }
     .section {
-      margin: 20px 0;
+      background: white;
+      border-radius: 3px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
-    .section h3 {
-      margin: 0 0 10px 0;
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
       color: #172b4d;
     }
-    .form-group {
-      margin: 12px 0;
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      background: #f4f5f7;
+      padding: 16px;
+      border-radius: 3px;
+      margin-bottom: 16px;
     }
-    .form-group label {
-      display: block;
-      margin-bottom: 4px;
-      color: #5e6c84;
+    .summary-item {
+      text-align: center;
+    }
+    .summary-label {
       font-size: 12px;
+      color: #5e6c84;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .summary-value {
+      font-size: 24px;
       font-weight: 600;
     }
-    .form-group input, .form-group select {
+    .summary-value.positive { color: #61bd4f; }
+    .summary-value.negative { color: #eb5a46; }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 14px;
+      color: #172b4d;
+    }
+    input, select, textarea {
       width: 100%;
       padding: 8px;
-      border: 1px solid #dfe1e6;
+      border: 1px solid #ddd;
       border-radius: 3px;
       box-sizing: border-box;
+      font-size: 14px;
     }
-    .button-group {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
+    textarea {
+      resize: vertical;
+      min-height: 60px;
     }
     button {
       padding: 8px 16px;
+      background: #5aac44;
+      color: white;
       border: none;
       border-radius: 3px;
       cursor: pointer;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 600;
     }
-    .btn-primary {
-      background: #0079bf;
-      color: white;
+    button:hover {
+      background: #61bd4f;
     }
-    .btn-primary:hover {
-      background: #026aa7;
+    .mod-primary {
+      background: #5aac44;
     }
-    .btn-secondary {
-      background: #f4f5f7;
-      color: #172b4d;
-    }
-    .btn-danger {
-      background: #eb5a46;
-      color: white;
+    .mod-primary:hover {
+      background: #61bd4f;
     }
     .log-entry {
-      padding: 10px;
-      margin: 8px 0;
+      padding: 12px;
+      border-left: 3px solid #5aac44;
       background: #f4f5f7;
+      margin-bottom: 8px;
       border-radius: 3px;
-      border-left: 3px solid #0079bf;
     }
-    .log-entry.payment {
-      border-left-color: #61bd4f;
+    .log-entry strong {
+      color: #172b4d;
     }
-    .log-entry-header {
-      display: flex;
-      justify-content: space-between;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .log-entry-meta {
-      font-size: 12px;
+    .log-entry small {
       color: #5e6c84;
     }
-    .summary {
-      background: #f4f5f7;
-      padding: 15px;
-      border-radius: 3px;
-      margin: 15px 0;
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      margin: 8px 0;
-    }
-    .summary-row.total {
-      font-weight: 700;
-      font-size: 16px;
-      padding-top: 10px;
-      border-top: 2px solid #dfe1e6;
-      margin-top: 12px;
-    }
-    .toggl-summary {
-      background: #e3fcef;
-      border-left: 3px solid #61bd4f;
-      padding: 12px;
-      margin: 12px 0;
-      border-radius: 3px;
-    }
-    .toggl-button {
-      background: #61bd4f;
-      color: white;
-      width: 100%;
-      margin-top: 8px;
-    }
-    .toggl-button:hover {
-      background: #51a03e;
+    @media (max-width: 600px) {
+      .two-column {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('billing')">💰 Billing</button>
-    <button class="tab" onclick="switchTab('toggl')">⏱️ Time Tracking</button>
-    <button class="tab" onclick="switchTab('summary')">📊 Summary</button>
-  </div>
-
-  <!-- BILLING TAB -->
-  <div id="billing" class="tab-content active">
+  <div class="container">
+    <!-- Summary Section -->
     <div class="section">
-      <h3>Add Charge</h3>
-      <form id="chargeForm">
+      <div class="summary">
+        <div class="summary-item">
+          <div class="summary-label">Total Charged</div>
+          <div class="summary-value" id="totalCharged">$0.00</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Total Paid</div>
+          <div class="summary-value" id="totalPaid">$0.00</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Balance</div>
+          <div class="summary-value" id="balance">$0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggl Hours Section -->
+    <div class="section">
+      <div class="section-title">⏱️ Toggl Time Tracking</div>
+      <div id="togglSection">
+        <p style="text-align: center; color: #999;">Loading Toggl data...</p>
+      </div>
+    </div>
+
+    <!-- Two Column Layout for Charges and Payments -->
+    <div class="two-column">
+      <!-- Add Charge Section -->
+      <div class="section">
+        <div class="section-title">💰 Add Charge</div>
         <div class="form-group">
-          <label>Charge Type</label>
-          <select id="chargeType" required>
+          <label for="chargeType">Type</label>
+          <select id="chargeType">
             <option value="">Select type...</option>
-            <option value="retainer">Retainer</option>
-            <option value="added_fees">Added Fees</option>
-            <option value="testimony">Testimony</option>
-            <option value="hours">Hours (from Toggl)</option>
-            <option value="other">Other</option>
+            <option value="Retainer">Retainer</option>
+            <option value="Added Fee">Added Fee</option>
+            <option value="Testimony">Testimony</option>
+            <option value="Hours">Hours</option>
+            <option value="Other">Other</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Amount ($)</label>
-          <input type="number" id="chargeAmount" step="0.01" required>
+          <label for="chargeAmount">Amount ($)</label>
+          <input type="number" id="chargeAmount" placeholder="0.00" step="0.01" min="0">
         </div>
         <div class="form-group">
-          <label>Description (optional)</label>
-          <input type="text" id="chargeDescription" placeholder="e.g., Court appearance">
+          <label for="chargeDescription">Description (optional)</label>
+          <textarea id="chargeDescription" placeholder="Enter details..."></textarea>
         </div>
-        <button type="submit" class="btn-primary">Add Charge</button>
-      </form>
-    </div>
+        <button id="addChargeBtn" class="mod-primary" style="width: 100%;">Add Charge</button>
+      </div>
 
-    <div class="section">
-      <h3>Add Payment</h3>
-      <form id="paymentForm">
+      <!-- Add Payment Section -->
+      <div class="section">
+        <div class="section-title">💳 Add Payment</div>
         <div class="form-group">
-          <label>Payment Date</label>
-          <input type="date" id="paymentDate" required>
-        </div>
-        <div class="form-group">
-          <label>Amount ($)</label>
-          <input type="number" id="paymentAmount" step="0.01" required>
+          <label for="paymentDate">Date</label>
+          <input type="date" id="paymentDate">
         </div>
         <div class="form-group">
-          <label>Payment Method (optional)</label>
-          <input type="text" id="paymentMethod" placeholder="e.g., Check #1234">
+          <label for="paymentAmount">Amount ($)</label>
+          <input type="number" id="paymentAmount" placeholder="0.00" step="0.01" min="0">
         </div>
-        <button type="submit" class="btn-primary">Add Payment</button>
-      </form>
+        <div class="form-group">
+          <label for="paymentMethod">Method</label>
+          <select id="paymentMethod">
+            <option value="">Select method...</option>
+            <option value="Check">Check</option>
+            <option value="Cash">Cash</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <button id="addPaymentBtn" class="mod-primary" style="width: 100%;">Add Payment</button>
+      </div>
     </div>
 
+    <!-- Charges History -->
     <div class="section">
-      <h3>Transaction Log</h3>
-      <div id="logEntries">Loading...</div>
+      <div class="section-title">📋 Charges History</div>
+      <div id="chargesList"></div>
     </div>
-  </div>
 
-  <!-- TOGGL TAB -->
-  <div id="toggl" class="tab-content">
-    <div class="toggl-summary" id="togglSummary">
-      <div style="text-align: center; color: #5e6c84;">Loading Toggl data...</div>
-    </div>
-    
+    <!-- Payments History -->
     <div class="section">
-      <h3>Actions</h3>
-      <button class="toggl-button" onclick="syncTogglHours()">🔄 Sync Hours from Toggl</button>
-      <button class="toggl-button" onclick="addTogglCharge()">💰 Add Hours as Charge</button>
-      <button class="btn-secondary" style="width: 100%; margin-top: 8px;" onclick="createTogglProject()">
-        ➕ Create Toggl Project
-      </button>
-    </div>
-
-    <div class="section">
-      <h3>Recent Time Entries</h3>
-      <div id="timeEntries">Loading...</div>
-    </div>
-  </div>
-
-  <!-- SUMMARY TAB -->
-  <div id="summary" class="tab-content">
-    <div class="summary" id="summaryContent">
-      Loading summary...
+      <div class="section-title">📋 Payments History</div>
+      <div id="paymentsList"></div>
     </div>
   </div>
 
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <script>
-    var t = TrelloPowerUp.iframe();
-    
-    const HOURLY_RATES = {
-      'Kitsap GAL': 200,
-      'Pierce GAL': 125,
-      'Kitsap MG GAL': 200,
-      'Pierce CV': 126,
-      'Kitsap CV': 75,
-      'Pierce MG GAL': 125
-    };
-    
-    const TOGGL_API_BASE = 'https://api.track.toggl.com/api/v9';
-    
-    let currentCard = null;
-    let togglData = null;
-    
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      
-      event.target.classList.add('active');
-      document.getElementById(tabName).classList.add('active');
-      
-      if (tabName === 'summary') {
-        loadSummary();
-      } else if (tabName === 'toggl') {
-        loadTogglData();
-      }
-    }
-    
-    function getPrimaryLabel(labels) {
-      const labelOrder = [
-        'Kitsap GAL', 'Pierce GAL', 'Kitsap MG GAL', 
-        'Pierce CV', 'Kitsap CV', 'Pierce MG GAL'
-      ];
-      
-      for (let labelName of labelOrder) {
-        if (labels.some(l => l.name === labelName)) {
-          return labelName;
-        }
-      }
-      return null;
-    }
-    
-    async function togglRequest(endpoint, options = {}) {
-      const apiKey = await t.get('board', 'shared', 'togglApiKey');
-      if (!apiKey) throw new Error('Toggl API key not configured');
-      
-      const auth = btoa(apiKey + ':api_token');
-      const response = await fetch(TOGGL_API_BASE + endpoint, {
-        ...options,
-        headers: {
-          'Authorization': 'Basic ' + auth,
-          'Content-Type': 'application/json',
-          ...options.headers
-        }
-      });
-      
-      if (!response.ok) throw new Error('Toggl API error: ' + response.status);
-      return response.json();
-    }
-    
-    async function loadTogglData() {
-      try {
-        const card = await t.card('name', 'labels');
-        currentCard = card;
-        
-        const primaryLabel = getPrimaryLabel(card.labels);
-        if (!primaryLabel) {
-          document.getElementById('togglSummary').innerHTML = 
-            '<div style="color: #eb5a46;">⚠️ No billing label found on card</div>';
-          return;
-        }
-        
-        const hourlyRate = HOURLY_RATES[primaryLabel];
-        const workspaces = await togglRequest('/me/workspaces');
-        const workspace = workspaces[0];
-        
-        const projects = await togglRequest('/workspaces/' + workspace.id + '/projects');
-        const project = projects.find(p => p.name === card.name);
-        
-        if (!project) {
-          document.getElementById('togglSummary').innerHTML = `
-            <div style="color: #5e6c84;">
-              📋 Project "${card.name}" not found in Toggl<br>
-              <small>Click "Create Toggl Project" to set it up</small>
-            </div>
-          `;
-          document.getElementById('timeEntries').innerHTML = 
-            '<div style="text-align: center; color: #5e6c84;">No project found</div>';
-          return;
-        }
-        
-        const endDate = new Date().toISOString().split('T')[0];
-        const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        
-        const entries = await togglRequest('/me/time_entries?start_date=' + startDate + '&end_date=' + endDate);
-        const projectEntries = entries.filter(e => e.project_id === project.id);
-        
-        const totalSeconds = projectEntries.reduce((sum, e) => sum + (e.duration || 0), 0);
-        const totalHours = (totalSeconds / 3600).toFixed(2);
-        const billableAmount = (totalHours * hourlyRate).toFixed(2);
-        
-        togglData = {
-          hours: totalHours,
-          rate: hourlyRate,
-          amount: billableAmount,
-          entries: projectEntries
-        };
-        
-        document.getElementById('togglSummary').innerHTML = `
-          <h4 style="margin: 0 0 10px 0;">⏱️ Time Summary</h4>
-          <div style="display: flex; justify-content: space-between; margin: 6px 0;">
-            <span>Total Hours:</span>
-            <strong>${totalHours}h</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin: 6px 0;">
-            <span>Hourly Rate:</span>
-            <strong>$${hourlyRate}/hour</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin: 6px 0; font-size: 16px;">
-            <span>Billable Amount:</span>
-            <strong>$${billableAmount}</strong>
-          </div>
-        `;
-        
-        if (projectEntries.length > 0) {
-          let entriesHtml = '';
-          projectEntries.slice(-5).reverse().forEach(entry => {
-            const hours = (entry.duration / 3600).toFixed(2);
-            const date = new Date(entry.start).toLocaleDateString();
-            entriesHtml += `
-              <div class="log-entry">
-                <div class="log-entry-header">
-                  <span>${entry.description || 'No description'}</span>
-                  <span>${hours}h</span>
-                </div>
-                <div class="log-entry-meta">${date}</div>
-              </div>
-            `;
-          });
-          document.getElementById('timeEntries').innerHTML = entriesHtml;
-        } else {
-          document.getElementById('timeEntries').innerHTML = 
-            '<div style="text-align: center; color: #5e6c84;">No time entries found</div>';
-        }
-        
-      } catch (error) {
-        document.getElementById('togglSummary').innerHTML = 
-          '<div style="color: #eb5a46;">Error: ' + error.message + '</div>';
-      }
-    }
-    
-    async function syncTogglHours() {
-      await loadTogglData();
-      alert('Toggl hours synced successfully!');
-    }
-    
-    async function addTogglCharge() {
-      if (!togglData) {
-        alert('Please sync hours first');
-        return;
-      }
-      
-      if (parseFloat(togglData.hours) === 0) {
-        alert('No hours to add');
-        return;
-      }
-      
-      const charges = await t.get('card', 'shared', 'charges', []);
-      charges.push({
-        type: 'hours',
-        amount: parseFloat(togglData.amount),
-        description: togglData.hours + ' hours @ $' + togglData.rate + '/hour',
-        date: new Date().toISOString()
-      });
-      
-      await t.set('card', 'shared', 'charges', charges);
-      alert('Added $' + togglData.amount + ' charge for ' + togglData.hours + ' hours');
-      switchTab('billing');
-      loadLog();
-    }
-    
-    async function createTogglProject() {
-      try {
-        const card = await t.card('name', 'labels');
-        const primaryLabel = getPrimaryLabel(card.labels);
-        
-        if (!primaryLabel) {
-          alert('Please add a billing label to the card first');
-          return;
-        }
-        
-        const hourlyRate = HOURLY_RATES[primaryLabel];
-        const workspaces = await togglRequest('/me/workspaces');
-        const workspace = workspaces[0];
-        
-        // Get or create client
-        const clients = await togglRequest('/workspaces/' + workspace.id + '/clients');
-        let client = clients.find(c => c.name === primaryLabel);
-        
-        if (!client) {
-          client = await togglRequest('/workspaces/' + workspace.id + '/clients', {
-            method: 'POST',
-            body: JSON.stringify({ name: primaryLabel })
-          });
-        }
-        
-        // Create project
-        await togglRequest('/workspaces/' + workspace.id + '/projects', {
-          method: 'POST',
-          body: JSON.stringify({
-            name: card.name,
-            client_id: client.id,
-            rate: hourlyRate,
-            billable: true
-          })
-        });
-        
-        alert('Toggl project created successfully!');
-        loadTogglData();
-        
-      } catch (error) {
-        alert('Error creating project: ' + error.message);
-      }
-    }
-    
-    async function loadLog() {
-      const charges = await t.get('card', 'shared', 'charges', []);
-      const payments = await t.get('card', 'shared', 'payments', []);
-      
-      const allEntries = [
-        ...charges.map(c => ({...c, entryType: 'charge'})),
-        ...payments.map(p => ({...p, entryType: 'payment'}))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      let html = '';
-      allEntries.forEach((entry, index) => {
-        const date = new Date(entry.date).toLocaleDateString();
-        const isPayment = entry.entryType === 'payment';
-        const className = isPayment ? 'log-entry payment' : 'log-entry';
-        
-        html += `
-          <div class="${className}">
-            <div class="log-entry-header">
-              <span>${isPayment ? '💰 Payment' : '💳 ' + entry.type}</span>
-              <span>${isPayment ? '-' : '+'}$${entry.amount.toFixed(2)}</span>
-            </div>
-            <div class="log-entry-meta">
-              ${date} ${entry.description ? '• ' + entry.description : ''}
-              ${entry.method ? '• ' + entry.method : ''}
-            </div>
-          </div>
-        `;
-      });
-      
-      document.getElementById('logEntries').innerHTML = html || 
-        '<div style="text-align: center; color: #5e6c84;">No transactions yet</div>';
-    }
-    
-    async function loadSummary() {
-      const charges = await t.get('card', 'shared', 'charges', []);
-      const payments = await t.get('card', 'shared', 'payments', []);
-      
-      const totalCharged = charges.reduce((sum, c) => sum + c.amount, 0);
-      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-      const balance = totalCharged - totalPaid;
-      
-      const card = await t.card('name', 'labels');
-      const primaryLabel = getPrimaryLabel(card.labels);
-      const hourlyRate = primaryLabel ? HOURLY_RATES[primaryLabel] : 0;
-      
-      document.getElementById('summaryContent').innerHTML = `
-        <h3 style="margin-top: 0;">Case: ${card.name}</h3>
-        <div class="summary-row">
-          <span>Label:</span>
-          <strong>${primaryLabel || 'None'}</strong>
-        </div>
-        <div class="summary-row">
-          <span>Hourly Rate:</span>
-          <strong>$${hourlyRate}/hour</strong>
-        </div>
-        <hr style="margin: 15px 0; border: none; border-top: 1px solid #dfe1e6;">
-        <div class="summary-row">
-          <span>Total Charged:</span>
-          <strong>$${totalCharged.toFixed(2)}</strong>
-        </div>
-        <div class="summary-row">
-          <span>Total Paid:</span>
-          <strong style="color: #61bd4f;">$${totalPaid.toFixed(2)}</strong>
-        </div>
-        <div class="summary-row total">
-          <span>Balance:</span>
-          <span style="color: ${balance > 0 ? '#eb5a46' : '#61bd4f'};">
-            $${balance.toFixed(2)}
-          </span>
-        </div>
-      `;
-    }
-    
-    // Form handlers
-    document.getElementById('chargeForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const type = document.getElementById('chargeType').value;
-      const amount = parseFloat(document.getElementById('chargeAmount').value);
-      const description = document.getElementById('chargeDescription').value;
-      
-      const charges = await t.get('card', 'shared', 'charges', []);
-      charges.push({
-        type: type,
-        amount: amount,
-        description: description,
-        date: new Date().toISOString()
-      });
-      
-      await t.set('card', 'shared', 'charges', charges);
-      
-      this.reset();
-      loadLog();
-      alert('Charge added successfully!');
-    });
-    
-    document.getElementById('paymentForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const date = document.getElementById('paymentDate').value;
-      const amount = parseFloat(document.getElementById('paymentAmount').value);
-      const method = document.getElementById('paymentMethod').value;
-      
-      const payments = await t.get('card', 'shared', 'payments', []);
-      payments.push({
-        amount: amount,
-        date: new Date(date).toISOString(),
-        method: method
-      });
-      
-      await t.set('card', 'shared', 'payments', payments);
-      
-      this.reset();
-      loadLog();
-      alert('Payment added successfully!');
-    });
-    
-    // Set default date to today
-    document.getElementById('paymentDate').valueAsDate = new Date();
-    
-    // Initialize
-    loadLog();
-  </script>
+  <script src="./modal.js"></script>
 </body>
 </html>
