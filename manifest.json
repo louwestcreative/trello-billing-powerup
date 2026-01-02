@@ -1,6 +1,6 @@
 {
-  "name": "Billing Tracker",
-  "details": "Track charges and payments for GAL and CV cases with automatic label-based charging",
+  "name": "Billing & Time Tracker",
+  "details": "Track charges, payments, and Toggl hours for GAL and CV cases with automatic label-based charging",
   "icon": {
     "url": "https://louwestcreative.github.io/trello-billing-powerup/coin.png"
   },
@@ -8,9 +8,10 @@
   "capabilities": [
     "card-badges",
     "card-buttons",
-    "card-detail-badges",
-    "show-settings"
+    "card-back-section",
+    "board-buttons",
+    "on-enable"
   ],
   "connectorUrl": "https://louwestcreative.github.io/trello-billing-powerup/index.html",
-  "tags": ["billing", "finance", "tracking"]
+  "tags": ["billing", "finance", "tracking", "time-tracking", "toggl"]
 }
