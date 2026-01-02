@@ -52,7 +52,7 @@ async function getTogglTimeEntries(projectName) {
   const projects = await togglRequest('/workspaces/' + workspace.id + '/projects');
   const project = projects.find(p => p.name === projectName);
   
-  if (!project) return { entries: [], totalHours: 0, billableAmount: 0 };
+  if (!project) return null;
   
   const endDate = new Date().toISOString().split('T')[0];
   const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -70,7 +70,6 @@ async function createTogglProject(cardName, labelName, hourlyRate) {
   const workspaces = await togglRequest('/me/workspaces');
   const workspace = workspaces[0];
   
-  // Get or create client
   const clients = await togglRequest('/workspaces/' + workspace.id + '/clients');
   let client = clients.find(c => c.name === labelName);
   
@@ -81,7 +80,6 @@ async function createTogglProject(cardName, labelName, hourlyRate) {
     });
   }
   
-  // Create project
   const project = await togglRequest('/workspaces/' + workspace.id + '/projects', {
     method: 'POST',
     body: JSON.stringify({
@@ -109,7 +107,7 @@ function renderChargesAndPayments(charges, payments) {
   if (charges.length === 0) {
     chargesHTML = '<p style="text-align: center; color: #999;">No charges yet</p>';
   } else {
-    charges.forEach(function(charge, index) {
+    charges.forEach(function(charge) {
       var date = new Date(charge.date).toLocaleDateString();
       chargesHTML += '<div class="log-entry">';
       chargesHTML += '<strong>' + charge.type + '</strong>: $' + charge.amount.toFixed(2);
@@ -124,7 +122,7 @@ function renderChargesAndPayments(charges, payments) {
   if (payments.length === 0) {
     paymentsHTML = '<p style="text-align: center; color: #999;">No payments yet</p>';
   } else {
-    payments.forEach(function(payment, index) {
+    payments.forEach(function(payment) {
       var date = new Date(payment.date).toLocaleDateString();
       paymentsHTML += '<div class="log-entry">';
       paymentsHTML += '<strong>Payment</strong>: $' + payment.amount.toFixed(2);
@@ -143,9 +141,12 @@ function renderChargesAndPayments(charges, payments) {
   var totalPaid = payments.reduce(function(sum, p) { return sum + p.amount; }, 0);
   var balance = totalCharged - totalPaid;
   
+  var balanceElement = document.getElementById('balance');
   document.getElementById('totalCharged').textContent = '$' + totalCharged.toFixed(2);
   document.getElementById('totalPaid').textContent = '$' + totalPaid.toFixed(2);
-  document.getElementById('balance').textContent = '$' + balance.toFixed(2);
+  balanceElement.textContent = '$' + balance.toFixed(2);
+  
+  balanceElement.className = 'summary-value ' + (balance > 0 ? 'negative' : 'positive');
 }
 
 async function loadTogglHours() {
@@ -163,18 +164,22 @@ async function loadTogglHours() {
     const hourlyRate = HOURLY_RATES[primaryLabel];
     const result = await getTogglTimeEntries(card.name);
     
-    if (!result.project) {
+    if (!result) {
       togglSection.innerHTML = `
         <p style="text-align: center; color: #999;">Toggl project not found</p>
-        <button id="createTogglBtn" class="mod-primary">Create Toggl Project</button>
+        <button id="createTogglBtn" class="mod-primary" style="width: 100%;">Create Toggl Project</button>
       `;
       document.getElementById('createTogglBtn').addEventListener('click', async function() {
         try {
+          this.disabled = true;
+          this.textContent = 'Creating...';
           await createTogglProject(card.name, primaryLabel, hourlyRate);
           alert('Toggl project created!');
           loadTogglHours();
         } catch (error) {
           alert('Error: ' + error.message);
+          this.disabled = false;
+          this.textContent = 'Create Toggl Project';
         }
       });
       return;
@@ -194,13 +199,13 @@ async function loadTogglHours() {
           <span>Rate:</span>
           <strong>$${hourlyRate}/h</strong>
         </div>
-        <div style="display: flex; justify-content: space-between; margin: 6px 0; font-size: 16px;">
+        <div style="display: flex; justify-content: space-between; margin: 6px 0; font-size: 16px; border-top: 1px solid #ddd; padding-top: 8px;">
           <span>Billable:</span>
           <strong>$${billableAmount}</strong>
         </div>
       </div>
-      <button id="addTogglChargeBtn" class="mod-primary" style="width: 100%;">Add Hours as Charge</button>
-      <button id="refreshTogglBtn" style="width: 100%; margin-top: 8px;">Refresh Hours</button>
+      <button id="addTogglChargeBtn" class="mod-primary" style="width: 100%; margin-bottom: 8px;">Add Hours as Charge</button>
+      <button id="refreshTogglBtn" style="width: 100%; background: #e2e4e6; color: #172b4d;">Refresh Hours</button>
     `;
     
     document.getElementById('addTogglChargeBtn').addEventListener('click', async function() {
@@ -211,7 +216,7 @@ async function loadTogglHours() {
       
       const charges = await t.get('card', 'shared', 'charges', []);
       charges.push({
-        type: 'hours',
+        type: 'Hours',
         amount: parseFloat(billableAmount),
         description: totalHours + ' hours @ $' + hourlyRate + '/hour',
         date: new Date().toISOString()
@@ -235,7 +240,6 @@ async function loadTogglHours() {
   }
 }
 
-// Add charge form
 document.getElementById('addChargeBtn').addEventListener('click', async function() {
   var type = document.getElementById('chargeType').value;
   var amount = parseFloat(document.getElementById('chargeAmount').value);
@@ -264,7 +268,6 @@ document.getElementById('addChargeBtn').addEventListener('click', async function
   alert('Charge added successfully!');
 });
 
-// Add payment form
 document.getElementById('addPaymentBtn').addEventListener('click', async function() {
   var date = document.getElementById('paymentDate').value;
   var amount = parseFloat(document.getElementById('paymentAmount').value);
@@ -292,9 +295,7 @@ document.getElementById('addPaymentBtn').addEventListener('click', async functio
   alert('Payment added successfully!');
 });
 
-// Set default payment date to today
 document.getElementById('paymentDate').valueAsDate = new Date();
 
-// Initialize
 loadChargesAndPayments();
 loadTogglHours();
