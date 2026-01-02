@@ -11,7 +11,15 @@ const HOURLY_RATES = {
   'Pierce MG GAL': 125
 };
 
-const TOGGL_API_BASE = 'https://api.track.toggl.com/api/v9';
+// Load Toggl integration module
+let togglIntegration;
+const script = document.createElement('script');
+script.src = './toggl-integration.js';
+script.onload = function() {
+  togglIntegration = window.TogglIntegration;
+  loadTogglHours();
+};
+document.head.appendChild(script);
 
 function getPrimaryLabel(labels) {
   const labelOrder = [
@@ -25,72 +33,6 @@ function getPrimaryLabel(labels) {
     }
   }
   return null;
-}
-
-async function togglRequest(endpoint, options = {}) {
-  const apiKey = await t.get('board', 'shared', 'togglApiKey');
-  if (!apiKey) throw new Error('Toggl API key not configured');
-  
-  const auth = btoa(apiKey + ':api_token');
-  const response = await fetch(TOGGL_API_BASE + endpoint, {
-    ...options,
-    headers: {
-      'Authorization': 'Basic ' + auth,
-      'Content-Type': 'application/json',
-      ...options.headers
-    }
-  });
-  
-  if (!response.ok) throw new Error('Toggl API error: ' + response.status);
-  return response.json();
-}
-
-async function getTogglTimeEntries(projectName) {
-  const workspaces = await togglRequest('/me/workspaces');
-  const workspace = workspaces[0];
-  
-  const projects = await togglRequest('/workspaces/' + workspace.id + '/projects');
-  const project = projects.find(p => p.name === projectName);
-  
-  if (!project) return null;
-  
-  const endDate = new Date().toISOString().split('T')[0];
-  const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  
-  const entries = await togglRequest('/me/time_entries?start_date=' + startDate + '&end_date=' + endDate);
-  const projectEntries = entries.filter(e => e.project_id === project.id);
-  
-  return { 
-    entries: projectEntries, 
-    project: project 
-  };
-}
-
-async function createTogglProject(cardName, labelName, hourlyRate) {
-  const workspaces = await togglRequest('/me/workspaces');
-  const workspace = workspaces[0];
-  
-  const clients = await togglRequest('/workspaces/' + workspace.id + '/clients');
-  let client = clients.find(c => c.name === labelName);
-  
-  if (!client) {
-    client = await togglRequest('/workspaces/' + workspace.id + '/clients', {
-      method: 'POST',
-      body: JSON.stringify({ name: labelName })
-    });
-  }
-  
-  const project = await togglRequest('/workspaces/' + workspace.id + '/projects', {
-    method: 'POST',
-    body: JSON.stringify({
-      name: cardName,
-      client_id: client.id,
-      rate: hourlyRate,
-      billable: true
-    })
-  });
-  
-  return project;
 }
 
 async function loadChargesAndPayments() {
@@ -152,6 +94,11 @@ function renderChargesAndPayments(charges, payments) {
 async function loadTogglHours() {
   const togglSection = document.getElementById('togglSection');
   
+  if (!togglIntegration) {
+    togglSection.innerHTML = '<p style="text-align: center; color: #999;">Loading Toggl integration...</p>';
+    return;
+  }
+  
   try {
     const card = await t.card('name', 'labels');
     const primaryLabel = getPrimaryLabel(card.labels);
@@ -162,9 +109,9 @@ async function loadTogglHours() {
     }
     
     const hourlyRate = HOURLY_RATES[primaryLabel];
-    const result = await getTogglTimeEntries(card.name);
+    const summary = await togglIntegration.getProjectSummary(t, card.name, hourlyRate);
     
-    if (!result) {
+    if (!summary) {
       togglSection.innerHTML = `
         <p style="text-align: center; color: #999;">Toggl project not found</p>
         <button id="createTogglBtn" class="mod-primary" style="width: 100%;">Create Toggl Project</button>
@@ -173,7 +120,7 @@ async function loadTogglHours() {
         try {
           this.disabled = true;
           this.textContent = 'Creating...';
-          await createTogglProject(card.name, primaryLabel, hourlyRate);
+          await togglIntegration.createProjectForCard(t, card.name, primaryLabel, hourlyRate);
           alert('Toggl project created!');
           loadTogglHours();
         } catch (error) {
@@ -185,9 +132,8 @@ async function loadTogglHours() {
       return;
     }
     
-    const totalSeconds = result.entries.reduce((sum, e) => sum + (e.duration || 0), 0);
-    const totalHours = (totalSeconds / 3600).toFixed(2);
-    const billableAmount = (totalHours * hourlyRate).toFixed(2);
+    const totalHours = summary.totalHours;
+    const billableAmount = summary.billableAmount;
     
     togglSection.innerHTML = `
       <div style="background: #f4f5f7; padding: 12px; border-radius: 3px; margin-bottom: 12px;">
@@ -298,4 +244,3 @@ document.getElementById('addPaymentBtn').addEventListener('click', async functio
 document.getElementById('paymentDate').valueAsDate = new Date();
 
 loadChargesAndPayments();
-loadTogglHours();
