@@ -103,7 +103,6 @@
         return;
       }
       try {
-        // Temporarily override stored key to test immediately
         const auth = btoa(`${apiKey}:api_token`);
         const response = await fetch('https://api.track.toggl.com/api/v9/me', {
           headers: { Authorization: `Basic ${auth}` }
