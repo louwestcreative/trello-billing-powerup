@@ -2,156 +2,171 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Sync Toggl Hours</title>
   <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
-  <link rel="stylesheet" href="./style.css">
-  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      padding: 20px;
+      margin: 0;
+      background: #f4f5f7;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .sync-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 24px;
+      color: #172b4d;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #5e6c84;
+      font-size: 14px;
+    }
+    .card-list {
+      background: white;
+      border-radius: 3px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .card-item {
+      padding: 12px;
+      border-left: 3px solid #5aac44;
+      background: #f4f5f7;
+      margin-bottom: 12px;
+      border-radius: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-info {
+      flex: 1;
+    }
+    .card-name {
+      font-weight: 600;
+      color: #172b4d;
+      margin-bottom: 4px;
+    }
+    .card-label {
+      font-size: 12px;
+      color: #5e6c84;
+      display: inline-block;
+      padding: 2px 8px;
+      background: #e2e4e6;
+      border-radius: 3px;
+      margin-right: 4px;
+    }
+    .card-hours {
+      font-size: 14px;
+      color: #5e6c84;
+      margin-top: 4px;
+    }
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .btn-primary {
+      background: #5aac44;
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: #61bd4f;
+    }
+    .btn-secondary {
+      background: #e2e4e6;
+      color: #172b4d;
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #cdd2d4;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .sync-all-section {
+      background: white;
+      border-radius: 3px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #5e6c84;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #5aac44;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #5e6c84;
+    }
+    .status-message {
+      padding: 12px;
+      border-radius: 3px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .status-success {
+      background: #d4f4dd;
+      color: #216e4e;
+    }
+    .status-error {
+      background: #ffebe6;
+      color: #ae2e24;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <div class="section" id="setupSection">
-      <h3>Toggl Setup</h3>
-      <p style="font-size: 12px; color: #5e6c84; margin-bottom: 12px;">
-        Enter your Toggl API token to sync time entries.
-      </p>
-      <input type="password" id="togglApiToken" class="input" placeholder="Toggl API Token">
-      <button id="saveTokenBtn" class="button">Save Token</button>
-      <p style="font-size: 11px; color: #5e6c84; margin-top: 8px;">
-        Find your API token at: <a href="https://track.toggl.com/profile" target="_blank">Toggl Profile</a>
-      </p>
+    <div class="sync-header">
+      <h1>⏱️ Sync Toggl Hours</h1>
+      <p class="subtitle">Import billable hours from Toggl to your cards</p>
     </div>
+
+    <div id="statusMessage"></div>
     
-    <div class="section" id="syncSection" style="display: none;">
-      <h3>Sync Time Entries</h3>
-      <div id="syncStatus" style="margin-bottom: 12px;"></div>
-      
-      <div style="margin-bottom: 12px;">
-        <label style="font-size: 12px; color: #5e6c84;">Date Range:</label>
-        <select id="dateRange" class="input">
-          <option value="7">Last 7 days</option>
-          <option value="30" selected>Last 30 days</option>
-          <option value="90">Last 90 days</option>
-          <option value="365">Last year</option>
-        </select>
+    <div id="content">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading cards with Toggl projects...</p>
       </div>
-      
-      <button id="syncBtn" class="button">Sync Hours from Toggl</button>
-      
-      <div id="hoursDisplay" style="margin-top: 16px; display: none;">
-        <div class="summary">
-          <div class="summary-row">
-            <span>Total Hours:</span>
-            <span id="totalHours" style="font-weight: 600;">0h 0m</span>
-          </div>
-          <div class="summary-row">
-            <span>Hourly Rate:</span>
-            <span id="hourlyRate" style="font-weight: 600;">$0</span>
-          </div>
-          <div class="summary-row total">
-            <span>Time Value:</span>
-            <span id="timeValue" style="font-weight: 600; color: #0079bf;">$0.00</span>
-          </div>
-        </div>
-        
-        <div style="margin-top: 12px;">
-          <label style="font-size: 12px; color: #5e6c84;">Custom Hourly Rate (optional):</label>
-          <input type="number" id="customRate" class="input" placeholder="Override rate" step="1">
-          <button id="saveRateBtn" class="button" style="margin-top: 4px;">Update Rate</button>
-        </div>
-      </div>
-      
-      <div id="matchedEntries" style="margin-top: 16px;"></div>
+    </div>
+
+    <div id="syncAllSection" style="display: none;" class="sync-all-section">
+      <button id="syncAllBtn" class="btn-primary" style="width: 100%;">
+        Sync All Cards
+      </button>
     </div>
   </div>
-  
-  <!-- CORS PROXY FIX: Add this script BEFORE toggl-sync.js -->
-  <script>
-    // ===== TOGGL API CORS WORKAROUND =====
-    // Since direct calls to Toggl API are blocked by CORS, we use a proxy
-    
-    // OPTION 1: AllOrigins (Free, works immediately, but has limitations)
-    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-    
-    // Helper function to call Toggl API through proxy
-    window.callTogglAPI = async function(apiToken, endpoint, method = 'GET', body = null) {
-      const togglUrl = `https://api.track.toggl.com/api/v9${endpoint}`;
-      
-      try {
-        // Encode the Toggl URL for the proxy
-        const proxyUrl = `${CORS_PROXY}${encodeURIComponent(togglUrl)}`;
-        
-        const options = {
-          method: method,
-          headers: {
-            'Content-Type': 'application/json',
-            // Note: AllOrigins may not pass all headers, so we encode auth in URL
-          }
-        };
-        
-        // For AllOrigins, we need to pass auth as part of the original URL
-        // This is a limitation - for production, use a proper backend proxy
-        const authHeader = btoa(`${apiToken}:api_token`);
-        const urlWithAuth = togglUrl.includes('?') 
-          ? `${togglUrl}&auth=${authHeader}` 
-          : `${togglUrl}?auth=${authHeader}`;
-        
-        // Try direct call first (in case CORS is fixed or user has extension)
-        let response;
-        try {
-          response = await fetch(togglUrl, {
-            method: method,
-            headers: {
-              'Authorization': `Basic ${authHeader}`,
-              'Content-Type': 'application/json'
-            },
-            body: body ? JSON.stringify(body) : undefined
-          });
-          
-          if (response.ok) {
-            console.log('Direct Toggl API call succeeded');
-            return await response.json();
-          }
-        } catch (directError) {
-          console.log('Direct call failed, trying proxy...', directError);
-        }
-        
-        // If direct call failed, try through proxy
-        // Note: This is a workaround with limitations
-        response = await fetch(proxyUrl, options);
-        
-        if (!response.ok) {
-          throw new Error(`Toggl API error: ${response.status} ${response.statusText}`);
-        }
-        
-        const text = await response.text();
-        try {
-          return JSON.parse(text);
-        } catch (e) {
-          return text;
-        }
-        
-      } catch (error) {
-        console.error('Toggl API call failed:', error);
-        throw new Error(`Failed to connect to Toggl: ${error.message}`);
-      }
-    };
-    
-    // Helper functions for common Toggl operations
-    window.getTogglUser = async function(apiToken) {
-      return await window.callTogglAPI(apiToken, '/me');
-    };
-    
-    window.getTogglWorkspaces = async function(apiToken) {
-      return await window.callTogglAPI(apiToken, '/workspaces');
-    };
-    
-    window.getTogglTimeEntries = async function(apiToken, startDate, endDate) {
-      return await window.callTogglAPI(apiToken, `/me/time_entries?start_date=${startDate}&end_date=${endDate}`);
-    };
-    
-    console.log('Toggl API proxy helpers loaded');
-  </script>
-  
+
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <script src="./toggl-sync.js"></script>
 </body>
 </html>
