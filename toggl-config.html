@@ -1,134 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Configure Toggl API Key</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-      padding: 20px;
-      background: #fff;
-      color: #172b4d;
-    }
-    h2 {
-      margin-bottom: 16px;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-      margin-bottom: 12px;
-      outline-offset: 2px;
-    }
-    button {
-      background-color: #5aac44;
-      border: none;
-      padding: 12px 20px;
-      font-weight: 600;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 16px;
-      transition: background-color 0.3s ease;
-      margin-bottom: 12px;
-    }
-    button:hover {
-      background-color: #61bd4f;
-    }
-    #status {
-      margin-top: 14px;
-      font-size: 14px;
-      min-height: 18px;
-      color: #172b4d;
-    }
-    #status.error {
-      color: #eb5a46;
-    }
-  </style>
-</head>
-<body>
-  <h2>Enter your Toggl API Key</h2>
-  <input id="apiKeyInput" type="text" placeholder="Paste your Toggl API Key here" autocomplete="off" />
-  <button id="saveBtn">Save API Key</button>
-  <button id="testBtn">Test API Key</button>
-  <div id="status"></div>
+document.getElementById('testBtn').addEventListener('click', async () => {
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+  if (!apiKey) {
+    updateStatus('API key cannot be empty for test.', true);
+    return;
+  }
+  try {
+    const response = await fetch('http://localhost:3000/validate-toggl-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey }),
+    });
 
-  <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <script>
-    const t = TrelloPowerUp.iframe();
-
-    // Load stored API key from Trello board shared storage
-    async function loadApiKey() {
-      try {
-        const key = await t.get('board', 'shared', 'togglApiKey');
-        if (key) {
-          document.getElementById('apiKeyInput').value = key;
-          updateStatus('Loaded saved API key.');
-        }
-      } catch (error) {
-        updateStatus('Error loading API key: ' + error.message, true);
-      }
-    }
-
-    // Update status message text and styling
-    function updateStatus(message, isError = false) {
-      const statusDiv = document.getElementById('status');
-      statusDiv.textContent = message;
-      if (isError) {
-        statusDiv.classList.add('error');
+    if (response.ok) {
+      const result = await response.json();
+      if (result.valid) {
+        updateStatus('API key is valid!');
       } else {
-        statusDiv.classList.remove('error');
+        updateStatus('API key is invalid: ' + (result.error || 'Unknown error'), true);
       }
+    } else {
+      const error = await response.json();
+      updateStatus('Error: ' + (error.error || 'Unknown error'), true);
     }
-
-    // Save API key to Trello shared board storage
-    document.getElementById('saveBtn').addEventListener('click', async () => {
-      const apiKey = document.getElementById('apiKeyInput').value.trim();
-      if (!apiKey) {
-        updateStatus('API key cannot be empty.', true);
-        return;
-      }
-      try {
-        await t.set('board', 'shared', 'togglApiKey', apiKey);
-        updateStatus('API key saved successfully!');
-      } catch (error) {
-        updateStatus('Failed to save API key: ' + error.message, true);
-      }
-    });
-
-    // Test the API key by calling Toggl's "Get Current User" endpoint
-    document.getElementById('testBtn').addEventListener('click', async () => {
-      const apiKey = document.getElementById('apiKeyInput').value.trim();
-      if (!apiKey) {
-        updateStatus('API key cannot be empty for test.', true);
-        return;
-      }
-
-      // Basic auth requires the API token as username, and 'api_token' as password
-      const auth = btoa(`${apiKey}:api_token`);
-      try {
-        const response = await fetch('https://api.track.toggl.com/api/v9/me', {
-          headers: { Authorization: `Basic ${auth}` },
-          method: 'GET',
-        });
-
-        if (response.ok) {
-          updateStatus('API key is valid!');
-        } else {
-          const errText = await response.text();
-          updateStatus(`Invalid API key: ${response.status} - ${errText}`, true);
-        }
-      } catch (error) {
-        updateStatus('Test failed: ' + error.message, true);
-      }
-    });
-
-    // Initialize by loading saved API key (if any)
-    loadApiKey();
-  </script>
-</body>
-</html>
+  } catch (error) {
+    updateStatus('Test failed: ' + error.message, true);
+  }
+});
