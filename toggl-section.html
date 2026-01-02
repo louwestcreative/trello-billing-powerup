@@ -1,97 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      padding: 10px;
-      margin: 0;
-    }
-    .time-summary {
-      background: #f4f5f7;
-      border-radius: 3px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       padding: 12px;
-      margin-bottom: 12px;
+      margin: 0;
+      background: white;
     }
-    .time-summary h4 {
-      margin: 0 0 8px 0;
-      color: #172b4d;
+    .stats-box {
+      background: #f4f5f7;
+      padding: 12px;
+      border-radius: 3px;
+      margin-bottom: 12px;
     }
     .stat-row {
       display: flex;
       justify-content: space-between;
       margin: 6px 0;
-      font-size: 14px;
     }
-    .stat-label {
-      color: #5e6c84;
-    }
-    .stat-value {
+    .stat-row.total {
+      font-size: 16px;
       font-weight: 600;
-      color: #172b4d;
+      border-top: 1px solid #ddd;
+      padding-top: 8px;
+      margin-top: 8px;
     }
-    .time-entries {
-      max-height: 150px;
-      overflow-y: auto;
-    }
-    .time-entry {
-      border-left: 3px solid #0079bf;
-      padding: 8px;
-      margin: 6px 0;
-      background: white;
-      border-radius: 3px;
-    }
-    .entry-description {
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-    .entry-meta {
-      font-size: 12px;
-      color: #5e6c84;
-    }
-    .sync-button {
+    button {
       width: 100%;
-      padding: 8px;
-      background: #0079bf;
-      color: white;
+      padding: 8px 16px;
       border: none;
       border-radius: 3px;
       cursor: pointer;
-      font-weight: 500;
-      margin-top: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
     }
-    .sync-button:hover {
-      background: #026aa7;
+    .btn-primary {
+      background: #5aac44;
+      color: white;
     }
-    .loading {
+    .btn-primary:hover {
+      background: #61bd4f;
+    }
+    .btn-secondary {
+      background: #e2e4e6;
+      color: #172b4d;
+    }
+    .btn-secondary:hover {
+      background: #cdd2d4;
+    }
+    .message {
       text-align: center;
-      color: #5e6c84;
+      color: #999;
       padding: 20px;
     }
     .error {
       color: #eb5a46;
-      padding: 10px;
-      background: #ffebe6;
-      border-radius: 3px;
-      margin: 10px 0;
-    }
-    .setup-needed {
-      text-align: center;
-      padding: 20px;
-      color: #5e6c84;
     }
   </style>
 </head>
 <body>
   <div id="content">
-    <div class="loading">Loading time tracking data...</div>
+    <div class="message">Loading Toggl data...</div>
   </div>
 
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <script src="./toggl-integration.js"></script>
   <script>
     var t = TrelloPowerUp.iframe();
-    
+
     const HOURLY_RATES = {
       'Kitsap GAL': 200,
       'Pierce GAL': 125,
@@ -100,9 +80,7 @@
       'Kitsap CV': 75,
       'Pierce MG GAL': 125
     };
-    
-    const TOGGL_API_BASE = 'https://api.track.toggl.com/api/v9';
-    
+
     function getPrimaryLabel(labels) {
       const labelOrder = [
         'Kitsap GAL', 'Pierce GAL', 'Kitsap MG GAL', 
@@ -114,163 +92,101 @@
           return labelName;
         }
       }
-      
       return null;
     }
-    
-    async function togglRequest(endpoint, options = {}) {
-      const apiKey = await t.get('board', 'shared', 'togglApiKey');
-      
-      if (!apiKey) {
-        throw new Error('Toggl API key not configured');
-      }
-      
-      const auth = btoa(apiKey + ':api_token');
-      
-      const response = await fetch(TOGGL_API_BASE + endpoint, {
-        ...options,
-        headers: {
-          'Authorization': 'Basic ' + auth,
-          'Content-Type': 'application/json',
-          ...options.headers
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Toggl API error: ' + response.status);
-      }
-      
-      return response.json();
-    }
-    
-    async function getTogglTimeEntries(projectName) {
-      const workspaces = await togglRequest('/me/workspaces');
-      const workspace = workspaces[0];
-      
-      const projects = await togglRequest('/workspaces/' + workspace.id + '/projects');
-      const project = projects.find(p => p.name === projectName);
-      
-      if (!project) {
-        return [];
-      }
-      
-      const endDate = new Date().toISOString().split('T')[0];
-      const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
-      const entries = await togglRequest(
-        '/me/time_entries?start_date=' + startDate + '&end_date=' + endDate
-      );
-      
-      return entries.filter(e => e.project_id === project.id);
-    }
-    
-    function formatDuration(seconds) {
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      return hours + 'h ' + minutes + 'm';
-    }
-    
-    function formatDate(isoString) {
-      const date = new Date(isoString);
-      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    }
-    
-    async function loadTimeData() {
-      const content = document.getElementById('content');
+
+    async function loadTogglData() {
+      const contentDiv = document.getElementById('content');
+      const togglIntegration = window.TogglIntegration;
       
       try {
-        const apiKey = await t.get('board', 'shared', 'togglApiKey');
-        
-        if (!apiKey) {
-          content.innerHTML = `
-            <div class="setup-needed">
-              <p>⚙️ Toggl API key not configured</p>
-              <p><small>Use "Configure Toggl" button in board menu</small></p>
-            </div>
-          `;
-          return;
-        }
-        
         const card = await t.card('name', 'labels');
-        const projectName = card.name;
-        const labels = card.labels;
-        const primaryLabel = getPrimaryLabel(labels);
+        const primaryLabel = getPrimaryLabel(card.labels);
         
         if (!primaryLabel) {
-          content.innerHTML = `
-            <div class="error">
-              No billing label found. Add a label to track time.
-            </div>
-          `;
+          contentDiv.innerHTML = '<div class="message">Add a billing label to track hours</div>';
           return;
         }
         
         const hourlyRate = HOURLY_RATES[primaryLabel];
-        const timeEntries = await getTogglTimeEntries(projectName);
+        const summary = await togglIntegration.getProjectSummary(t, card.name, hourlyRate);
         
-        const totalSeconds = timeEntries.reduce((sum, e) => sum + (e.duration || 0), 0);
-        const totalHours = (totalSeconds / 3600).toFixed(2);
-        const billableAmount = (totalHours * hourlyRate).toFixed(2);
-        
-        let html = `
-          <div class="time-summary">
-            <h4>📊 Time Summary</h4>
-            <div class="stat-row">
-              <span class="stat-label">Total Hours:</span>
-              <span class="stat-value">${totalHours}h</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Hourly Rate:</span>
-              <span class="stat-value">$${hourlyRate}/hour</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Billable Amount:</span>
-              <span class="stat-value">$${billableAmount}</span>
-            </div>
-          </div>
-        `;
-        
-        if (timeEntries.length > 0) {
-          html += '<div class="time-entries">';
-          html += '<h4>Recent Entries:</h4>';
+        if (!summary) {
+          contentDiv.innerHTML = `
+            <div class="message">Toggl project not found</div>
+            <button class="btn-primary" id="createProjectBtn">Create Toggl Project</button>
+          `;
           
-          timeEntries.slice(-10).reverse().forEach(entry => {
-            html += `
-              <div class="time-entry">
-                <div class="entry-description">${entry.description || 'No description'}</div>
-                <div class="entry-meta">
-                  ${formatDuration(entry.duration)} • ${formatDate(entry.start)}
-                </div>
-              </div>
-            `;
+          document.getElementById('createProjectBtn').addEventListener('click', async function() {
+            try {
+              this.disabled = true;
+              this.textContent = 'Creating...';
+              await togglIntegration.createProjectForCard(t, card.name, primaryLabel, hourlyRate);
+              await t.alert({ message: 'Project created!', duration: 3 });
+              loadTogglData();
+            } catch (error) {
+              await t.alert({ message: 'Error: ' + error.message, duration: 5 });
+              this.disabled = false;
+              this.textContent = 'Create Toggl Project';
+            }
           });
-          
-          html += '</div>';
-        } else {
-          html += '<p style="color: #5e6c84; text-align: center;">No time entries found for this project</p>';
+          return;
         }
         
-        html += '<button class="sync-button" onclick="loadTimeData()">🔄 Refresh</button>';
+        const totalHours = summary.totalHours;
+        const billableAmount = summary.billableAmount;
         
-        content.innerHTML = html;
-        t.sizeTo('#content');
+        contentDiv.innerHTML = `
+          <div class="stats-box">
+            <div class="stat-row">
+              <span>Hours Tracked:</span>
+              <strong>${totalHours}h</strong>
+            </div>
+            <div class="stat-row">
+              <span>Rate:</span>
+              <strong>$${hourlyRate}/h</strong>
+            </div>
+            <div class="stat-row total">
+              <span>Billable Amount:</span>
+              <strong>$${billableAmount}</strong>
+            </div>
+          </div>
+          <button class="btn-primary" id="addChargeBtn">Add Hours as Charge</button>
+          <button class="btn-secondary" id="refreshBtn">Refresh Data</button>
+        `;
+        
+        document.getElementById('addChargeBtn').addEventListener('click', async function() {
+          if (parseFloat(totalHours) === 0) {
+            await t.alert({ message: 'No hours to add', duration: 3 });
+            return;
+          }
+          
+          const charges = await t.get('card', 'shared', 'charges', []);
+          charges.push({
+            type: 'Hours',
+            amount: parseFloat(billableAmount),
+            description: totalHours + ' hours @ $' + hourlyRate + '/h',
+            date: new Date().toISOString()
+          });
+          
+          await t.set('card', 'shared', 'charges', charges);
+          await t.alert({ message: 'Added $' + billableAmount + ' charge', duration: 3 });
+        });
+        
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+          loadTogglData();
+        });
         
       } catch (error) {
-        content.innerHTML = `
-          <div class="error">
-            Error loading time data: ${error.message}
-          </div>
-          <button class="sync-button" onclick="loadTimeData()">Try Again</button>
-        `;
-        t.sizeTo('#content');
+        if (error.message.includes('not configured')) {
+          contentDiv.innerHTML = '<div class="message">Configure Toggl API key in board settings</div>';
+        } else {
+          contentDiv.innerHTML = '<div class="message error">Error: ' + error.message + '</div>';
+        }
       }
     }
-    
-    // Make loadTimeData available globally for refresh button
-    window.loadTimeData = loadTimeData;
-    
-    // Load data on page load
-    loadTimeData();
+
+    t.sizeTo('#content').then(loadTogglData);
   </script>
 </body>
 </html>
