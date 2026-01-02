@@ -32,6 +32,16 @@ TrelloPowerUp.initialize({
           height: 150
         });
       }
+    }, {
+      icon: GRAY_ICON,
+      text: 'Sync All Hours',
+      callback: function(t) {
+        return t.modal({
+          url: './toggl-sync.html',
+          title: 'Sync Toggl Hours',
+          fullscreen: true
+        });
+      }
     }];
   },
   
