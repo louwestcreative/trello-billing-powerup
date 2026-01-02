@@ -1,69 +1,77 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Sync Toggl Hours</title>
-  <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
-  <link rel="stylesheet" href="./style.css">
-  <script src="https://p.trellocdn.com/power-up.min.js"></script>
-</head>
-<body>
-  <div class="container">
-    <div class="section" id="setupSection">
-      <h3>Toggl Setup</h3>
-      <p style="font-size: 12px; color: #5e6c84; margin-bottom: 12px;">
-        Enter your Toggl API token to sync time entries.
-      </p>
-      <input type="password" id="togglApiToken" class="input" placeholder="Toggl API Token">
-      <button id="saveTokenBtn" class="button">Save Token</button>
-      <p style="font-size: 11px; color: #5e6c84; margin-top: 8px;">
-        Find your API token at: <a href="https://track.toggl.com/profile" target="_blank">Toggl Profile</a>
-      </p>
-    </div>
-    
-    <div class="section" id="syncSection" style="display: none;">
-      <h3>Sync Time Entries</h3>
-      <div id="syncStatus" style="margin-bottom: 12px;"></div>
-      
-      <div style="margin-bottom: 12px;">
-        <label style="font-size: 12px; color: #5e6c84;">Date Range:</label>
-        <select id="dateRange" class="input">
-          <option value="7">Last 7 days</option>
-          <option value="30" selected>Last 30 days</option>
-          <option value="90">Last 90 days</option>
-          <option value="365">Last year</option>
-        </select>
-      </div>
-      
-      <button id="syncBtn" class="button">Sync Hours from Toggl</button>
-      
-      <div id="hoursDisplay" style="margin-top: 16px; display: none;">
-        <div class="summary">
-          <div class="summary-row">
-            <span>Total Hours:</span>
-            <span id="totalHours" style="font-weight: 600;">0h 0m</span>
-          </div>
-          <div class="summary-row">
-            <span>Hourly Rate:</span>
-            <span id="hourlyRate" style="font-weight: 600;">$0</span>
-          </div>
-          <div class="summary-row total">
-            <span>Time Value:</span>
-            <span id="timeValue" style="font-weight: 600; color: #0079bf;">$0.00</span>
-          </div>
-        </div>
-        
-        <div style="margin-top: 12px;">
-          <label style="font-size: 12px; color: #5e6c84;">Custom Hourly Rate (optional):</label>
-          <input type="number" id="customRate" class="input" placeholder="Override rate" step="1">
-          <button id="saveRateBtn" class="button" style="margin-top: 4px;">Update Rate</button>
-        </div>
-      </div>
-      
-      <div id="matchedEntries" style="margin-top: 16px;"></div>
-    </div>
-  </div>
-  
-  <script src="./toggl-sync.js"></script>
-</body>
-</html>
+/* Global Styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f4f5f7;
+  color: #172b4d;
+}
+
+/* Buttons */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mod-primary {
+  background: #5aac44;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.mod-primary:hover:not(:disabled) {
+  background: #61bd4f;
+}
+
+/* Forms */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="password"],
+select,
+textarea {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #5aac44;
+}
+
+/* Log Entries */
+.log-entry {
+  padding: 12px;
+  background: #f4f5f7;
+  border-left: 3px solid #5aac44;
+  border-radius: 3px;
+  margin-bottom: 8px;
+}
+
+.log-entry strong {
+  color: #172b4d;
+}
+
+.log-entry small {
+  color: #5e6c84;
+  font-size: 12px;
+}
