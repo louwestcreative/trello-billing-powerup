@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Configure Toggl API Key</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      padding: 20px;
+      background: #fff;
+      color: #172b4d;
+    }
+    h2 {
+      margin-bottom: 16px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+      outline-offset: 2px;
+    }
+    button {
+      background-color: #5aac44;
+      border: none;
+      padding: 12px 20px;
+      font-weight: 600;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+      margin-bottom: 12px;
+    }
+    button:hover {
+      background-color: #61bd4f;
+    }
+    #status {
+      margin-top: 14px;
+      font-size: 14px;
+      min-height: 18px;
+      color: #172b4d;
+    }
+    #status.error {
+      color: #eb5a46;
+    }
+  </style>
+</head>
+<body>
+  <h2>Enter your Toggl API Key</h2>
+  <input id="apiKeyInput" type="text" placeholder="Paste your Toggl API Key here" autocomplete="off" />
+  <button id="saveBtn">Save API Key</button>
+  <button id="testBtn">Test API Key</button>
+  <div id="status"></div>
+
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <script>
+    const t = TrelloPowerUp.iframe();
+
+    async function loadApiKey() {
+      try {
+        const key = await t.get('board', 'shared', 'togglApiKey');
+        if (key) {
+          document.getElementById('apiKeyInput').value = key;
+        }
+      } catch (error) {
+        updateStatus('Error loading API key: ' + error.message, true);
+      }
+    }
+
+    function updateStatus(message, isError = false) {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      if (isError) {
+        statusDiv.classList.add('error');
+      } else {
+        statusDiv.classList.remove('error');
+      }
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const apiKey = document.getElementById('apiKeyInput').value.trim();
+      if (!apiKey) {
+        updateStatus('API key cannot be empty.', true);
+        return;
+      }
+      try {
+        await t.set('board', 'shared', 'togglApiKey', apiKey);
+        updateStatus('API key saved successfully!');
+      } catch (error) {
+        updateStatus('Failed to save API key: ' + error.message, true);
+      }
+    });
+
+    document.getElementById('testBtn').addEventListener('click', async () => {
+      const apiKey = document.getElementById('apiKeyInput').value.trim();
+      if (!apiKey) {
+        updateStatus('API key cannot be empty for test.', true);
+        return;
+      }
+      try {
+        const response = await fetch('http://localhost:3000/validate-toggl-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.valid) {
+            updateStatus('API key is valid!');
+          } else {
+            updateStatus('API key is invalid.', true);
+          }
+        } else {
+          const errData = await response.json();
+          updateStatus(`Invalid API key: ${errData.error || response.statusText}`, true);
+        }
+      } catch (error) {
+        updateStatus('Test failed: ' + error.message, true);
+      }
+    });
+
+    loadApiKey();
+  </script>
+</body>
+</html>
