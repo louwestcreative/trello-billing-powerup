@@ -1,17 +1,22 @@
 {
-  "name": "Billing & Time Tracker",
-  "details": "Track charges, payments, and Toggl hours for GAL and CV cases with automatic label-based charging",
+  "manifest_version": 1,
+  "id": "your-powerup-id",
+  "apiVersion": 1,
+  "name": "Trello Billing Power-Up",
+  "description": "Integrate Toggl billing with Trello cards",
+  "author": "Your Name",
   "icon": {
-    "url": "https://louwestcreative.github.io/trello-billing-powerup/coin.png"
+    "url": "https://your-hosted-url/icon.png"
   },
-  "author": "Lou West Creative",
-  "capabilities": [
-    "card-badges",
-    "card-buttons",
-    "card-back-section",
-    "board-buttons",
-    "on-enable"
-  ],
-  "connectorUrl": "https://louwestcreative.github.io/trello-billing-powerup/index.html",
-  "tags": ["billing", "finance", "tracking", "time-tracking", "toggl"]
+  "capabilities": {
+    "card-detail-badges": "https://your-hosted-url/toggl-section.html",
+    "board-settings": {
+      "url": "https://your-hosted-url/toggl-config.html",
+      "height": 300
+    }
+  },
+  "connectors": [],
+  "iframeConnectors": [],
+  "authorizations": [],
+  "scripts": []
 }
