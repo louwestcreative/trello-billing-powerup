@@ -1,5 +1,4 @@
 /* global TrelloPowerUp */
-
 // Hourly rates by label
 const HOURLY_RATES = {
   'Kitsap GAL': 200,
@@ -26,10 +25,11 @@ TrelloPowerUp.initialize({
       icon: GRAY_ICON,
       text: 'Configure Toggl',
       callback: function(t) {
-        return t.popup({
+        // Changed from popup to modal for proper display
+        return t.modal({
           title: 'Toggl Configuration',
           url: './toggl-config.html',
-          height: 150
+          height: 500  // Increased height
         });
       }
     }, {
@@ -87,6 +87,15 @@ TrelloPowerUp.initialize({
         height: 300
       }
     };
+  },
+  
+  // Add show-settings capability for Power-Up settings
+  'show-settings': function(t, options) {
+    return t.modal({
+      title: 'Toggl Track Settings',
+      url: './toggl-config.html',
+      height: 500
+    });
   },
   
   'on-enable': function(t) {
