@@ -1,7 +1,7 @@
 // server/index.js
 const express = require('express');
 const cors = require('cors');
-const fetch = require('node-fetch');
+const togglProxy = require('./toggl-proxy');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,7 +24,10 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     endpoints: {
       health: 'GET /health',
-      validateToggl: 'POST /validate-toggl-key'
+      validateToggl: 'POST /validate-toggl-key',
+      timeEntries: 'POST /toggl/time-entries',
+      workspaces: 'POST /toggl/workspaces',
+      projects: 'POST /toggl/projects'
     }
   });
 });
@@ -47,57 +50,107 @@ app.post('/validate-toggl-key', async (req, res) => {
   console.log(`🔍 Validating Toggl API key: ${sanitized}`);
   
   try {
-    // Encode API key for Toggl Basic Auth
-    // Toggl expects: "apiKey:api_token" encoded in base64
-    const auth = Buffer.from(`${apiKey}:api_token`).toString('base64');
+    const result = await togglProxy.validateTogglApiKey(apiKey);
     
-    // Call Toggl API to validate
-    const response = await fetch('https://api.track.toggl.com/api/v9/me', {
-      method: 'GET',
-      headers: { 
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (response.ok) {
-      // API key is valid
-      const data = await response.json();
-      console.log(`✅ API key valid for: ${data.email}`);
-      
-      res.json({ 
-        valid: true,
-        data: {
-          id: data.id,
-          email: data.email,
-          fullname: data.fullname,
-          timezone: data.timezone,
-          default_workspace_id: data.default_workspace_id
-        }
-      });
-    } else if (response.status === 401 || response.status === 403) {
-      // Invalid API key
-      console.log(`❌ Invalid API key (status: ${response.status})`);
-      res.json({ 
-        valid: false, 
-        error: 'Invalid API key. Please check your Toggl API key and try again.' 
-      });
+    if (result.valid) {
+      console.log(`✅ API key valid for: ${result.data.email}`);
+      res.json(result);
     } else {
-      // Other HTTP errors
-      const errorText = await response.text();
-      console.log(`⚠️ Toggl API error (status: ${response.status}):`, errorText);
-      res.status(response.status).json({ 
-        valid: false, 
-        error: `Toggl API returned status ${response.status}` 
-      });
+      console.log(`❌ Invalid API key: ${result.error}`);
+      res.json(result);
     }
     
   } catch (error) {
-    // Network or server errors
     console.error('❌ Server error:', error);
     res.status(500).json({ 
       valid: false, 
       error: 'Server error: ' + error.message 
+    });
+  }
+});
+
+// Get time entries
+app.post('/toggl/time-entries', async (req, res) => {
+  const { apiKey, startDate, endDate } = req.body;
+  
+  if (!apiKey) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'API key is required' 
+    });
+  }
+  
+  if (!startDate || !endDate) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'startDate and endDate are required (format: YYYY-MM-DD)' 
+    });
+  }
+  
+  console.log(`📊 Fetching time entries: ${startDate} to ${endDate}`);
+  
+  try {
+    const result = await togglProxy.getTimeEntries(apiKey, startDate, endDate);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Get workspaces
+app.post('/toggl/workspaces', async (req, res) => {
+  const { apiKey } = req.body;
+  
+  if (!apiKey) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'API key is required' 
+    });
+  }
+  
+  console.log(`🏢 Fetching workspaces`);
+  
+  try {
+    const result = await togglProxy.getWorkspaces(apiKey);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Get projects
+app.post('/toggl/projects', async (req, res) => {
+  const { apiKey, workspaceId } = req.body;
+  
+  if (!apiKey) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'API key is required' 
+    });
+  }
+  
+  if (!workspaceId) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'workspaceId is required' 
+    });
+  }
+  
+  console.log(`📁 Fetching projects for workspace: ${workspaceId}`);
+  
+  try {
+    const result = await togglProxy.getProjects(apiKey, workspaceId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
     });
   }
 });
@@ -108,7 +161,10 @@ app.use((req, res) => {
     error: 'Endpoint not found',
     availableEndpoints: {
       health: 'GET /health',
-      validateToggl: 'POST /validate-toggl-key'
+      validateToggl: 'POST /validate-toggl-key',
+      timeEntries: 'POST /toggl/time-entries',
+      workspaces: 'POST /toggl/workspaces',
+      projects: 'POST /toggl/projects'
     }
   });
 });
@@ -126,6 +182,9 @@ app.listen(PORT, () => {
 ║   Endpoints:                                          ║
 ║   • GET  /health                                      ║
 ║   • POST /validate-toggl-key                          ║
+║   • POST /toggl/time-entries                          ║
+║   • POST /toggl/workspaces                            ║
+║   • POST /toggl/projects                              ║
 ║                                                       ║
 ║   Test with:                                          ║
 ║   curl http://localhost:${PORT}/health                  ║
