@@ -1,14 +1,32 @@
 {
-  "name": "trello-billing-powerup-server",
+  "name": "trello-billing-powerup",
   "version": "1.0.0",
-  "description": "Backend for Trello Billing Power-Up",
+  "description": "Trello Power-Up for billing and time tracking with Toggl integration",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "cd server && npm start",
+    "server": "cd server && npm start",
+    "dev": "cd server && npm run dev",
+    "install-server": "cd server && npm install",
+    "test": "cd server && npm test"
   },
-  "dependencies": {
-    "express": "^4.18.2",
-    "node-fetch": "^3.3.1"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/louwestcreative/trello-billing-powerup.git"
   },
-  "type": "module"
+  "keywords": [
+    "trello",
+    "power-up",
+    "billing",
+    "toggl",
+    "time-tracking",
+    "gal",
+    "legal"
+  ],
+  "author": "Lou West Creative",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/louwestcreative/trello-billing-powerup/issues"
+  },
+  "homepage": "https://github.com/louwestcreative/trello-billing-powerup#readme"
 }
